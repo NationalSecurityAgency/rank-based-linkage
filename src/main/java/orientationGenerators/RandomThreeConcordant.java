@@ -22,16 +22,16 @@ public class RandomThreeConcordant {
 	 * 
 	 * @param n size of set S of objects.
 	 */
-
+	private final List<Integer> points;// Objects are treated as the set S:={0, 1, 2, ..., n-1}.
 	/*
 	 * rankTable[x][y] = k means y is the k-th nearest neighbor of x, according to
 	 * x's ranking. The same relationship is expressed by orderedNeighbors[x][k] =
-	 * y. Here the objects are treated as the set S:={0, 1, 2, ..., n-1}, and ranks
+	 * y, where the objects are treated as the set S:={0, 1, 2, ..., n-1}, and ranks
 	 * k are elements of {1, 2, ...,n-1}. By convention rankTable[x][x] = 0.
 	 * 
 	 */
 	private int[][] rankTable, orderedNeighbors;
-	private List<Integer> points;
+
 	SplittableRandom g;
 
 	public RandomThreeConcordant(int n) {
@@ -42,10 +42,13 @@ public class RandomThreeConcordant {
 		this.rankTable = new int[n][n];
 		this.orderedNeighbors = new int[n][n];
 		g = new SplittableRandom();
-		
-	}
 
-	private void initialAcyclicOrientation(int n) {
+	}
+/*
+ * Initializes rankTable and orderedNeighbors using a random acyclic orientation.
+ */
+	private void initialAcyclicOrientation() {
+		int n = this.points.size();
 		/*
 		 * I.I.D. Uniform random variables fill the super-diagonal of an n &times; n
 		 * array. Then reflect to give symmetric random matrix (eta_{i,j}).
@@ -66,28 +69,50 @@ public class RandomThreeConcordant {
 		 * j->eta[i][j]
 		 */
 		IntFunction<Comparator<Integer>> sortByEta = i -> ((y, z) -> Double.compare(eta[i][y], eta[i][z]));
-		List<List<Integer>> rowRanks = new ArrayList<>();
+		/*List<List<Integer>> rowRanks = new ArrayList<>();*/
 		int rowCounter = 0;
 		while (rowCounter < n) {
 			/*
-			 * New copy of list of Integers 0, 1, 2, ... ,n-1
+			 * Make a new copy of list of Integers 0, 1, 2, ... ,n-1, and 
+			 * sort row by Comparator specific to this row. No effect on the points list.
 			 */
 			List<Integer> row = new ArrayList<>(this.points);
-			/*
-			 * Sort row by Comparator specific to this row. No effect on the points list.
-			 */
 			row.sort(sortByEta.apply(rowCounter));
 			/*
-			 * 
+			 * Transfer to this.orderedNeighbors, row index = rowCounter.
+			 * According to x = rowCounter, the y in position k of the row is assigned rank k.
 			 */
-			rowRanks.add(rowCounter, row);
+
+			this.orderedNeighbors[rowCounter] = row.stream().mapToInt(Integer::intValue).toArray();
+			for(int k = 0; k < n; k++) {
+				this.rankTable[rowCounter][this.orderedNeighbors[rowCounter][k]] = k;
+			}
 			rowCounter++;
 		}
-		/*
-		 * More convenient and accessible array encoding
+
+	}
+	/*
+	 * TODO
+	 */
+	private void oneFlipUpdate() {
+		
+	}
+	/*
+	 * TODO
+	 */
+	public void edgeFlipProcess(int nSteps) {
+		int n = this.points.size();
+		this.initialAcyclicOrientation();
+		/**
 		 * TODO
 		 */
-
+	}
+	/**
+	 * 
+	 * @return true if ranking system is 3-concordant.
+	 */
+	public boolean test3Concordance() {
+		return true;
 	}
 
 }
