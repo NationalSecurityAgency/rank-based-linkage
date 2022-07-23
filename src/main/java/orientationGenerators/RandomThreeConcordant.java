@@ -1,8 +1,11 @@
 package orientationGenerators;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.SplittableRandom;
 import java.util.function.IntFunction;
 import java.util.function.IntPredicate;
@@ -19,7 +22,7 @@ public class RandomThreeConcordant {
 	 * <p>
 	 * Storage requirement: O(n^2)
 	 * <p>
-	 * Run time: O(n^3).
+	 * Run time: O(n^3). Twenty seconds at n = 1000.
 	 * 
 	 * @param n size of set S of objects.
 	 */
@@ -151,7 +154,11 @@ public class RandomThreeConcordant {
 		 * true if {xy, yz, xz} is a directed 3-cycle
 		 */
 		IntPredicate checkSimplex = m -> this.voter2SimplexIsCyclic(m);
-		return IntStream.range(1, n * n * n).noneMatch(checkSimplex);
+		double start = (double) System.currentTimeMillis();
+		boolean cycleFree = IntStream.range(1, n * n * n).parallel().noneMatch(checkSimplex);
+		double duration = (double) (System.currentTimeMillis() - start) / 1000.0;
+		System.out.println("Time to check all voter triangles are cycle-free: " + duration + " seconds.");
+		return cycleFree;
 	}
 
 	/**
@@ -215,6 +222,63 @@ public class RandomThreeConcordant {
 		boolean yzARROWyx = (this.rankTable[y][z] < this.rankTable[y][x]); // yz &rarr; xy
 		boolean zxARROWzy = (this.rankTable[z][x] < this.rankTable[z][y]); // xz &rarr; yz
 		return (switchArrow && yzARROWyx && zxARROWzy) || (!switchArrow && !yzARROWyx && !zxARROWzy);
+	}
+
+	/**
+	 * Tests whether the 3-simplex {tx, xy, yz, zt} is a directed 4-cycle, using
+	 * rank table. Returns false when {x, y, z} has less than three distinct
+	 * elements.
+	 * <p>
+	 * False unless points t, x, y, z are all different.
+	 * 
+	 * @param t point
+	 * @param x point
+	 * @param y point
+	 * @param z point
+	 * @return true if zt &rarr; tx &rarr; xy &rarr; yz &rarr; zt (or same with
+	 *         arrows reversed)
+	 */
+	public boolean quadrilateralIsCyclic(int t, int x, int y, int z) {
+		Set<Integer> quad = new HashSet<>(4);
+		Collections.addAll(quad, t, x, y, z);
+		if (quad.size() < 4) {
+			return false;
+		} else {
+			boolean tzARROWtx = (this.rankTable[t][z] < this.rankTable[t][x]);
+			boolean xtARROWxy = (this.rankTable[x][t] < this.rankTable[x][y]);
+			boolean yxARROWyz = (this.rankTable[y][x] < this.rankTable[y][z]);
+			boolean zyARROWzt = (this.rankTable[z][y] < this.rankTable[z][t]);
+			if ((tzARROWtx && xtARROWxy && yxARROWyz && zyARROWzt)
+					|| (!tzARROWtx && !xtARROWxy && !yxARROWyz && !zyARROWzt)) {
+				return true;
+			} else {
+				return false;
+			}
+		}
+
+	}
+
+	/**
+	 * Checks relative of frequency of 4-cycles; used after {@link edgeFlipProcess}
+	 * to verify that orientation is no longer acyclic.
+	 * 
+	 * @param sample size
+	 * @return number of 4-cycles detected in random sample of 3-simplices
+	 */
+	public int detect4CyclesFromSample(int sampleSize) {
+		int counter = 0;
+		int fourCycleCount = 0;
+		while (counter < sampleSize) {
+			/*
+			 * Sample four times from {0, 1, ..,n-1} without replacament.
+			 */
+			int[] q = g.ints(0, n).distinct().limit(4).toArray();
+			if (this.quadrilateralIsCyclic(q[0], q[1], q[2], q[3])) {
+				fourCycleCount++;
+			}
+			counter++;
+		}
+		return fourCycleCount;
 	}
 
 	/**

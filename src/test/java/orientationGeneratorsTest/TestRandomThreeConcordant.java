@@ -14,8 +14,8 @@ import orientationGenerators.RandomThreeConcordant;
 import utilities.HTMLFormatter;
 
 /**
- * Test {@link RandomThreeConcordant} class.
- * Example: for n = 1000, 249M edge flips can be completed in 21 seconds.
+ * Test {@link RandomThreeConcordant} class. Example: for n = 1000, 249M edge
+ * flips can be completed in 21 seconds.
  * 
  * @author <a href="https://github.com/probabilist-us">R. W. R. Darling</a>
  *
@@ -26,10 +26,11 @@ public class TestRandomThreeConcordant {
 	RandomThreeConcordant r3c;
 	Random g;
 	final int n, num1Simplices;
-/**
- * 
- * @param num size of set of points
- */
+
+	/**
+	 * 
+	 * @param num size of set of points
+	 */
 	public TestRandomThreeConcordant(int num) {
 		this.n = num;
 		this.num1Simplices = n * (n - 1) * (n - 2) / 2;
@@ -46,7 +47,7 @@ public class TestRandomThreeConcordant {
 	}
 
 	void report3Cycle() {
-		OptionalInt c = IntStream.range(1, n * n * n).filter(m -> r3c.voter2SimplexIsCyclic(m)).findAny();
+		OptionalInt c = IntStream.range(1, n * n * n).parallel().filter(m -> r3c.voter2SimplexIsCyclic(m)).findAny();
 		if (c.isPresent()) {
 			int m = c.getAsInt();
 			int x = m % n; // e.g. n = 10, m = 875, x = 5
@@ -57,10 +58,12 @@ public class TestRandomThreeConcordant {
 			logger.warning("2-simplex {" + x + ", " + y + ", " + z + "} is a directed cycle.");
 		}
 	}
-/**
- * Reports result to logger
- * @param args none
- */
+
+	/**
+	 * Reports result to logger
+	 * 
+	 * @param args none
+	 */
 	public static void main(String[] args) {
 		int num = 1000;
 		TestRandomThreeConcordant test = new TestRandomThreeConcordant(num);
@@ -91,9 +94,21 @@ public class TestRandomThreeConcordant {
 		if (test.n < 10) {
 			test.printRankTable();
 		}
-		threeConcordant = test.r3c.test3Concordance();
-		logger.info("3-concordant after edge flips? " + threeConcordant);
-		
+		boolean threeConcordantAfter = test.r3c.test3Concordance();
+		logger.info("3-concordant after edge flips? " + threeConcordantAfter);
+
+		/*
+		 * Test sampling without replacement
+		 */
+		int[] quad = test.g.ints(0, test.n).distinct().limit(4).toArray();
+		logger.info("Sample, size 4, no repeats " + Arrays.toString(quad));
+		int quadSampleSize = 1000000;
+
+		int number4Cycles = test.r3c.detect4CyclesFromSample(quadSampleSize);
+		logger.info("In a sample of " + quadSampleSize + " 3-simplices, " + number4Cycles + " 4-cycles were found.");
+		double proportion4Cycles = (double) number4Cycles / (double) quadSampleSize;
+		logger.info("Percentage of 4-cycles: " + (100.0 * proportion4Cycles));
+
 	}
 
 	/**
