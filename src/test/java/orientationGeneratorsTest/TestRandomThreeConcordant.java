@@ -74,7 +74,10 @@ public class TestRandomThreeConcordant {
 		if (test.n < 10) {
 			test.printRankTable();
 		}
+		double start = (double) System.currentTimeMillis();
 		boolean threeConcordant = test.r3c.test3Concordance();
+		double duration = (double) (System.currentTimeMillis() - start) / 1000.0;
+		logger.info("Time to check all voter triangles are cycle-free: " + duration + " seconds.");
 		logger.info("3-concordant at initialization? " + threeConcordant);
 		if (!threeConcordant) {
 			test.report3Cycle();
@@ -89,8 +92,10 @@ public class TestRandomThreeConcordant {
 		/*
 		 * Perform edge flip process
 		 */
+		start = (double) System.currentTimeMillis();
 		test.r3c.edgeFlipProcess(numSteps);
-		logger.info("Number of edge flips performed: " + test.r3c.getNumFlips());
+		duration = (double) (System.currentTimeMillis() - start) / 1000.0;
+		logger.info(test.r3c.getNumFlips() + " edge flips performed in " + duration + " seconds.");
 		if (test.n < 10) {
 			test.printRankTable();
 		}

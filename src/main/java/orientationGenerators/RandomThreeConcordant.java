@@ -1,6 +1,7 @@
 package orientationGenerators;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashSet;
@@ -130,16 +131,10 @@ public class RandomThreeConcordant {
 	 */
 	public void edgeFlipProcess(int nSteps) {
 		this.numFlips = 0;
-		double start = (double) System.currentTimeMillis();
 		this.initialAcyclicOrientation();
-		double duration = (double) (System.currentTimeMillis() - start) / 1000.0;
-		System.out.println("Initial orientation created in " + duration + " seconds.");
-		start = (double) System.currentTimeMillis();
 		while (this.numFlips < nSteps) {
 			this.oneFlipUpdate();
 		}
-		duration = (double) (System.currentTimeMillis() - start) / 1000.0;
-		System.out.println(this.numFlips + " edge flips performed in " + duration + " seconds.");
 	}
 
 	/**
@@ -154,10 +149,7 @@ public class RandomThreeConcordant {
 		 * true if {xy, yz, xz} is a directed 3-cycle
 		 */
 		IntPredicate checkSimplex = m -> this.voter2SimplexIsCyclic(m);
-		double start = (double) System.currentTimeMillis();
 		boolean cycleFree = IntStream.range(1, n * n * n).parallel().noneMatch(checkSimplex);
-		double duration = (double) (System.currentTimeMillis() - start) / 1000.0;
-		System.out.println("Time to check all voter triangles are cycle-free: " + duration + " seconds.");
 		return cycleFree;
 	}
 
@@ -279,6 +271,56 @@ public class RandomThreeConcordant {
 			counter++;
 		}
 		return fourCycleCount;
+	}
+
+	/**
+	 * To be used only when n = 4. Shows there are 450 3-concordant ranking tables
+	 * on a set of four points, and 8 of them make {01, 12, 23, 03} a 4-cycle.
+	 * 
+	 * @return array containing count of 3-Concordant, and count of 3-Concordant
+	 *         with four-cycle {01, 12, 23, 03}
+	 */
+	public int[] produceAll3ConcordantTables4Points() {
+		int count3Concordant = 0;
+		int count3ConcordantWithFourCycle0123 = 0;
+		/*
+		 * List six permutations of 3 objects. For cut and paste.
+		 */
+		int[][] perm = new int[][] { { 1, 2, 3 }, { 1, 3, 2 }, { 2, 1, 3 }, { 2, 3, 1 }, { 3, 1, 2 }, { 3, 2, 1 } };
+		/*
+		 * How they appear as rows of ranking table, in view of autosimilarity
+		 */
+		int[][][] perms = new int[4][6][4];
+		perms[0] = new int[][] { { 0, 1, 2, 3 }, { 0, 1, 3, 2 }, { 0, 2, 1, 3 }, { 0, 2, 3, 1 }, { 0, 3, 1, 2 },
+				{ 0, 3, 2, 1 } };
+		perms[1] = new int[][] { { 1, 0, 2, 3 }, { 1, 0, 3, 2 }, { 2, 0, 1, 3 }, { 2, 0, 3, 1 }, { 3, 0, 1, 2 },
+				{ 3, 0, 2, 1 } };
+		perms[2] = new int[][] { { 1, 2, 0, 3 }, { 1, 3, 0, 2 }, { 2, 1, 0, 3 }, { 2, 3, 0, 1 }, { 3, 1, 0, 2 },
+				{ 3, 2, 0, 1 } };
+		perms[3] = new int[][] { { 1, 2, 3, 0 }, { 1, 3, 2, 0 }, { 2, 1, 3, 0 }, { 2, 3, 1, 0 }, { 3, 1, 2, 0 },
+				{ 3, 2, 1, 0 } };
+		int num4RankingSystems = 6 * 6 * 6 * 6;
+		int[] indices = new int[4];
+		for (int m = 0; m < num4RankingSystems; m++) {
+			indices[0] = m % 6;
+			int r0 = (m - indices[0]) / 6;
+			indices[1] = r0 % 6;
+			int r1 = (r0 - indices[1]) / 6;
+			indices[2] = r1 % 6;
+			int r2 = (r1 - indices[2]) / 6;
+			indices[3] = r2 % 6;
+			for (int row = 0; row < 4; row++) {
+				this.rankTable[row] = perms[row][indices[row]]; // 4-tuple such as {0,1,3,2}
+			}
+			if (this.test3Concordance()) {
+				count3Concordant++;
+				if (this.quadrilateralIsCyclic(0, 1, 2, 3)) {
+					count3ConcordantWithFourCycle0123++;
+				}
+			}
+		}
+
+		return new int[] { count3Concordant, count3ConcordantWithFourCycle0123 };
 	}
 
 	/**
