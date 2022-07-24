@@ -17,18 +17,33 @@ public class RandomThreeConcordant {
 	/**
 	 * Generates a random 3-concordant orientation of the line graph of the complete
 	 * graph on n objects. Not guaranteed to generate such an object uniformly.
-	 * Method is to start with an acyclic orientation induced by a random ordering
-	 * of the points of the line graph. Then flip edges at random until about half
-	 * the edges of the line graph have been flipped at least once.
+	 * <p>
+	 * Performs a random walk on ranking systems (i.e. rank tables), where two rank
+	 * tables are adjacent if one object x switches the ranks of objects y and z
+	 * whose ranks differ by one.
+	 * <p>
+	 * Start with an acyclic orientation induced by a random ordering of the points
+	 * of the line graph. In particular this is 3-concordant.
+	 * <p>
+	 * The random walk is "reflected at the boundary" of the 3-concordant ranking
+	 * systems, in the sense that a step of the walk is disallowed if it makes some
+	 * voter triangle into a directed 3-cycle.
+	 * <p>
+	 * Doubts about whether O(n^4) or O(n^3 log(n)) edge flips are needed. The state
+	 * space of the random walk has about (n!)^n elements.
+	 * <p>
+	 * Tested in {@link TestRandomThreeConcordant} class.
 	 * <p>
 	 * Storage requirement: O(n^2)
 	 * <p>
 	 * Run time: O(n^3). Twenty seconds at n = 1000.
 	 * 
 	 * @param n size of set S of objects.
+	 * @since 7.23.2022.
 	 */
 	private final int n;
 	private final List<Integer> points;// Objects are treated as the set S:={0, 1, 2, ..., n-1}.
+	private final List<Integer> ranks; // {1, 2, ..., n}
 	/*
 	 * rankTable[x][y] = k means y is the k-th nearest neighbor of x, according to
 	 * x's ranking. The same relationship is expressed by orderedNeighbors[x][k] =
@@ -47,10 +62,42 @@ public class RandomThreeConcordant {
 		this.n = numPoints;
 		this.numFlips = 0;
 		this.points = IntStream.range(0, n).boxed().collect(Collectors.toUnmodifiableList());
+		this.ranks = IntStream.range(1, n).boxed().collect(Collectors.toUnmodifiableList());
 		this.rankTable = new int[n][n];
 		this.orderedNeighbors = new int[n][n];
 		g = new SplittableRandom();
 
+	}
+
+	/**
+	 * Fills each row of this.rankTable with a permutation of {0, 1, 2, ..., n-1},
+	 * with subtlety that this.rankTable[j][j] = 0 for all j. Hence shuffling n-1
+	 * integers, not n.
+	 */
+	public void generateUniformRandomRankTable() {
+		for(int i = 0; i < n; i++) {
+			/*
+			 * Integer 0 is missing from permutation
+			 */
+			List<Integer> permutation = new ArrayList<>(this.ranks);
+			Collections.shuffle(permutation);
+			/*
+			 * Object i assigns rank 0 to itself, making permutation a list of size n.
+			 */
+			permutation.add(i, Integer.valueOf(0));
+			Arrays.setAll(this.rankTable[i], y->permutation.get(y));
+		}
+	}
+	
+	/**
+	 * TODO
+	 * Keep generating uniform random ranking systems until a 3-concordant one shows up.
+	 * Return number of trials.
+	 */
+	public long rejectionSamplerUniform3Concordant() {
+		long nTrials = 0L;
+		
+		return nTrials;
 	}
 
 	/**
@@ -146,7 +193,7 @@ public class RandomThreeConcordant {
 	 */
 	public boolean test3Concordance() {
 		/*
-		 * true if {xy, yz, xz} is a directed 3-cycle
+		 * checkSimplex returns true if {xy, yz, xz} is a directed 3-cycle
 		 */
 		IntPredicate checkSimplex = m -> this.voter2SimplexIsCyclic(m);
 		boolean cycleFree = IntStream.range(1, n * n * n).parallel().noneMatch(checkSimplex);
@@ -274,8 +321,11 @@ public class RandomThreeConcordant {
 	}
 
 	/**
-	 * To be used only when n = 4. Shows there are 450 3-concordant ranking tables
-	 * on a set of four points, and 8 of them make {01, 12, 23, 03} a 4-cycle.
+	 * Exhaustive enumeration of 3-concordant ranking systems when n = 4. Called by
+	 * {@link Exhaust3ConcordantOnFourPoints} test class.
+	 * <p>
+	 * Shows there are 450 3-concordant ranking tables on a set of four points, and
+	 * 8 of them make {01, 12, 23, 03} a 4-cycle.
 	 * 
 	 * @return array containing count of 3-Concordant, and count of 3-Concordant
 	 *         with four-cycle {01, 12, 23, 03}

@@ -65,13 +65,23 @@ public class TestRandomThreeConcordant {
 	 * @param args none
 	 */
 	public static void main(String[] args) {
-		int num = 1000;
+		int num = 6;
 		TestRandomThreeConcordant test = new TestRandomThreeConcordant(num);
+		/*
+		 * Generate a uniform random rank table
+		 */
+		test.r3c.generateUniformRandomRankTable();
+		if (test.n < 10) {
+			logger.info("Uniform random rank table, not necessarily 3-concordant");
+			test.printRankTable();
+			logger.info("Is it 3-concordant? " + test.r3c.test3Concordance());
+		}
 		/*
 		 * Check initialization
 		 */
 		test.r3c.initialAcyclicOrientation();
 		if (test.n < 10) {
+			logger.info("Rank table of random topological sort of 0-simplices");
 			test.printRankTable();
 		}
 		double start = (double) System.currentTimeMillis();
