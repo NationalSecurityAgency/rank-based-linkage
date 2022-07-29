@@ -1,4 +1,4 @@
-package orientationGenerators;
+package orientationStructures;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -6,6 +6,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
+import java.util.OptionalLong;
 import java.util.Set;
 import java.util.SplittableRandom;
 import java.util.function.IntFunction;
@@ -13,34 +14,15 @@ import java.util.function.IntPredicate;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
-public class RandomThreeConcordant {
-	/**
-	 * Generates a random 3-concordant orientation of the line graph of the complete
-	 * graph on n objects. Not guaranteed to generate such an object uniformly.
-	 * <p>
-	 * Performs a random walk on ranking systems (i.e. rank tables), where two rank
-	 * tables are adjacent if one object x switches the ranks of objects y and z
-	 * whose ranks differ by one.
-	 * <p>
-	 * Start with an acyclic orientation induced by a random ordering of the points
-	 * of the line graph. In particular this is 3-concordant.
-	 * <p>
-	 * The random walk is "reflected at the boundary" of the 3-concordant ranking
-	 * systems, in the sense that a step of the walk is disallowed if it makes some
-	 * voter triangle into a directed 3-cycle.
-	 * <p>
-	 * Doubts about whether O(n^4) or O(n^3 log(n)) edge flips are needed. The state
-	 * space of the random walk has about (n!)^n elements.
-	 * <p>
-	 * Tested in {@link TestRandomThreeConcordant} class.
-	 * <p>
-	 * Storage requirement: O(n^2)
-	 * <p>
-	 * Run time: O(n^3). Twenty seconds at n = 1000.
-	 * 
-	 * @param n size of set S of objects.
-	 * @since 7.23.2022.
-	 */
+/**
+ * Data structure with utility methods for ranking systems, and for testing for
+ * 3-concordance.
+ * 
+ * @author <a href="https://github.com/probabilist-us">R. W. R. Darling</a>
+ *
+ */
+public class RankingSystem {
+
 	private final int n;
 	private final List<Integer> points;// Objects are treated as the set S:={0, 1, 2, ..., n-1}.
 	private final List<Integer> ranks; // {1, 2, ..., n}
@@ -55,7 +37,7 @@ public class RandomThreeConcordant {
 	private int numFlips;
 	SplittableRandom g;
 
-	public RandomThreeConcordant(int numPoints) {
+	public RankingSystem(int numPoints) {
 		/*
 		 * List of Integers 0, 1, 2, ... ,n-1
 		 */
@@ -75,7 +57,7 @@ public class RandomThreeConcordant {
 	 * integers, not n.
 	 */
 	public void generateUniformRandomRankTable() {
-		for(int i = 0; i < n; i++) {
+		for (int i = 0; i < n; i++) {
 			/*
 			 * Integer 0 is missing from permutation
 			 */
@@ -85,26 +67,36 @@ public class RandomThreeConcordant {
 			 * Object i assigns rank 0 to itself, making permutation a list of size n.
 			 */
 			permutation.add(i, Integer.valueOf(0));
-			Arrays.setAll(this.rankTable[i], y->permutation.get(y));
+			Arrays.setAll(this.rankTable[i], y -> permutation.get(y));
 		}
 	}
-	
+
 	/**
-	 * TODO
-	 * Keep generating uniform random ranking systems until a 3-concordant one shows up.
-	 * Return number of trials.
+	 * 
+	 * @param maxTrials limit of number iterations
+	 * @return OptionalLong containing number of iterations to success if a
+	 *         3-concordant ranking table is found, or empty if not.
 	 */
-	public long rejectionSamplerUniform3Concordant() {
+	public OptionalLong rejectionSamplerUniform3Concordant(long maxTrials) {
 		long nTrials = 0L;
-		
-		return nTrials;
+		boolean threeConcordantRanktable = false;
+		while (!threeConcordantRanktable && nTrials < maxTrials) {
+			this.generateUniformRandomRankTable();
+			threeConcordantRanktable = this.test3Concordance();
+			nTrials++;
+		}
+		if (threeConcordantRanktable) {
+			return OptionalLong.of(nTrials);
+		} else {
+			return OptionalLong.empty();
+		}
 	}
 
 	/**
 	 * Initializes rankTable and orderedNeighbors using a random acyclic
 	 * orientation.
 	 */
-	public void initialAcyclicOrientation() {
+	public void generateConcordant() {
 		/*
 		 * I.I.D. Uniform random variables fill the super-diagonal of an n &times; n
 		 * array. Then reflect to give symmetric random matrix (eta_{i,j}).
@@ -171,14 +163,36 @@ public class RandomThreeConcordant {
 		}
 	}
 
-	/*
-	 * Execute given number of edge flips, none causing a 3-cycle. Typical value of
-	 * nSteps will be half the number n(n-1)(n-2)/2 of 1-simplices. i.e.
-	 * n(n-1)(n-2)/4
+	/**
+	 * Generates a random 3-concordant orientation of the line graph of the complete
+	 * graph on n objects. Not guaranteed to generate such an object uniformly.
+	 * <p>
+	 * Performs a random walk on ranking systems (i.e. rank tables), where two rank
+	 * tables are adjacent if one object x switches the ranks of objects y and z
+	 * whose ranks differ by one.
+	 * <p>
+	 * Start with an acyclic orientation induced by a random ordering of the points
+	 * of the line graph. In particular this is 3-concordant.
+	 * <p>
+	 * The random walk is "reflected at the boundary" of the 3-concordant ranking
+	 * systems, in the sense that a step of the walk is disallowed if it makes some
+	 * voter triangle into a directed 3-cycle.
+	 * <p>
+	 * Doubts about whether O(n^4) or O(n^3 log(n)) edge flips are needed. The state
+	 * space of the random walk has about (n!)^n elements.
+	 * <p>
+	 * Tested in {@link TestRankingSystemRandomWalk} class.
+	 * <p>
+	 * Storage requirement: O(n^2)
+	 * <p>
+	 * Run time: O(n^3). Twenty seconds at n = 1000.
+	 * 
+	 * @param n size of set S of objects.
+	 * @since 7.23.2022.
 	 */
 	public void edgeFlipProcess(int nSteps) {
 		this.numFlips = 0;
-		this.initialAcyclicOrientation();
+		this.generateConcordant();
 		while (this.numFlips < nSteps) {
 			this.oneFlipUpdate();
 		}

@@ -1,4 +1,4 @@
-package graphStructures;
+package orientationStructures;
 
 /**
  * When x is source, y is target, the record indicates that y is the k-th

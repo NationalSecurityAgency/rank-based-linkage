@@ -1,4 +1,4 @@
-package orientationGeneratorsTest;
+package orientationStructuresTest;
 
 import java.io.IOException;
 import java.util.Arrays;
@@ -10,20 +10,20 @@ import java.util.logging.LogManager;
 import java.util.logging.Logger;
 import java.util.stream.IntStream;
 
-import orientationGenerators.RandomThreeConcordant;
+import orientationStructures.RankingSystem;
 import utilities.HTMLFormatter;
 
 /**
- * Test {@link RandomThreeConcordant} class. Example: for n = 1000, 249M edge
+ * Test {@link RankingSystem} class. Example: for n = 1000, 249M edge
  * flips can be completed in 21 seconds.
  * 
  * @author <a href="https://github.com/probabilist-us">R. W. R. Darling</a>
  *
  */
-public class TestRandomThreeConcordant {
+public class TestRankingSystemRandomWalk {
 
-	static Logger logger = Logger.getLogger(TestRandomThreeConcordant.class.getName());
-	RandomThreeConcordant r3c;
+	static Logger logger = Logger.getLogger(TestRankingSystemRandomWalk.class.getName());
+	RankingSystem r3c;
 	Random g;
 	final int n, num1Simplices;
 
@@ -31,10 +31,10 @@ public class TestRandomThreeConcordant {
 	 * 
 	 * @param num size of set of points
 	 */
-	public TestRandomThreeConcordant(int num) {
+	public TestRankingSystemRandomWalk(int num) {
 		this.n = num;
 		this.num1Simplices = n * (n - 1) * (n - 2) / 2;
-		r3c = new RandomThreeConcordant(n);
+		r3c = new RankingSystem(n);
 		g = new Random();
 		this.initializeHTMLLogger(System.currentTimeMillis());
 	}
@@ -65,8 +65,8 @@ public class TestRandomThreeConcordant {
 	 * @param args none
 	 */
 	public static void main(String[] args) {
-		int num = 6;
-		TestRandomThreeConcordant test = new TestRandomThreeConcordant(num);
+		int num = 1000;
+		TestRankingSystemRandomWalk test = new TestRankingSystemRandomWalk(num);
 		/*
 		 * Generate a uniform random rank table
 		 */
@@ -79,7 +79,7 @@ public class TestRandomThreeConcordant {
 		/*
 		 * Check initialization
 		 */
-		test.r3c.initialAcyclicOrientation();
+		test.r3c.generateConcordant();
 		if (test.n < 10) {
 			logger.info("Rank table of random topological sort of 0-simplices");
 			test.printRankTable();
@@ -133,7 +133,7 @@ public class TestRandomThreeConcordant {
 	private void initializeHTMLLogger(long timestamp) {
 		try {
 			LogManager lm = LogManager.getLogManager();
-			FileHandler html_handler = new FileHandler(timestamp + "-log-r3c.html", true); // produced, readable
+			FileHandler html_handler = new FileHandler(timestamp + "-log-rs.html", true); // produced, readable
 			lm.addLogger(logger);
 			logger.setLevel(Level.ALL);
 			html_handler.setFormatter(new HTMLFormatter());

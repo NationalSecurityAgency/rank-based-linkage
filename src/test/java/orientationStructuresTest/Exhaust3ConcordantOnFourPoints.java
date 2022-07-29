@@ -1,4 +1,4 @@
-package orientationGeneratorsTest;
+package orientationStructuresTest;
 
 import java.io.IOException;
 import java.util.Arrays;
@@ -10,7 +10,7 @@ import java.util.logging.LogManager;
 import java.util.logging.Logger;
 import java.util.stream.IntStream;
 
-import orientationGenerators.RandomThreeConcordant;
+import orientationStructures.RankingSystem;
 import utilities.HTMLFormatter;
 
 /**
@@ -22,7 +22,7 @@ import utilities.HTMLFormatter;
 public class Exhaust3ConcordantOnFourPoints {
 
 	static Logger logger = Logger.getLogger(Exhaust3ConcordantOnFourPoints.class.getName());
-	RandomThreeConcordant r3c;
+	RankingSystem r3c;
 	final int n;
 
 	/**
@@ -31,7 +31,7 @@ public class Exhaust3ConcordantOnFourPoints {
 	 */
 	public Exhaust3ConcordantOnFourPoints() {
 		this.n = 4;
-		r3c = new RandomThreeConcordant(n);
+		r3c = new RankingSystem(n);
 		this.initializeHTMLLogger(System.currentTimeMillis());
 	}
 
@@ -60,7 +60,7 @@ public class Exhaust3ConcordantOnFourPoints {
 		/*
 		 * Check initialization
 		 */
-		test.r3c.initialAcyclicOrientation();
+		test.r3c.generateConcordant();
 		if (test.n < 10) {
 			test.printRankTable();
 		}
@@ -74,7 +74,7 @@ public class Exhaust3ConcordantOnFourPoints {
 	private void initializeHTMLLogger(long timestamp) {
 		try {
 			LogManager lm = LogManager.getLogManager();
-			FileHandler html_handler = new FileHandler(timestamp + "-log-r3c.html", true); // produced, readable
+			FileHandler html_handler = new FileHandler(timestamp + "-log-rs.html", true); // produced, readable
 			lm.addLogger(logger);
 			logger.setLevel(Level.ALL);
 			html_handler.setFormatter(new HTMLFormatter());
