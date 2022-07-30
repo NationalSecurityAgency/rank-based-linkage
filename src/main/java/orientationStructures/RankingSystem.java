@@ -323,7 +323,7 @@ public class RankingSystem {
 		int fourCycleCount = 0;
 		while (counter < sampleSize) {
 			/*
-			 * Sample four times from {0, 1, ..,n-1} without replacament.
+			 * Sample four times from {0, 1, ..,n-1} without replacement.
 			 */
 			int[] q = g.ints(0, n).distinct().limit(4).toArray();
 			if (this.quadrilateralIsCyclic(q[0], q[1], q[2], q[3])) {
@@ -406,5 +406,12 @@ public class RankingSystem {
 	 */
 	public int getNumFlips() {
 		return numFlips;
+	}
+
+	/**
+	 * @param rankTable the rankTable to set
+	 */
+	public void setRankTable(int[][] rankTable) {
+		this.rankTable = rankTable;
 	}
 }
