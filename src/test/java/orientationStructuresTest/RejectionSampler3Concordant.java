@@ -26,7 +26,7 @@ public class RejectionSampler3Concordant {
 	RankingSystem rs;
 	Random g;
 	final int n;
-	static final int[] numberOfFourSubsets = new int[] { 0, 0, 0, 0, 1, 5, 15, 35, 70, 630 };
+	static final int[] numberOfFourSubsets = new int[] { 0, 0, 0, 0, 1, 5, 15, 35, 70, 630, 6300 };
 
 	/**
 	 * 
@@ -52,7 +52,7 @@ public class RejectionSampler3Concordant {
 	 * @param args none
 	 */
 	public static void main(String[] args) {
-		int num = 8;
+		int num = 9;
 		int num4subsets = numberOfFourSubsets[num];
 		RejectionSampler3Concordant test = new RejectionSampler3Concordant(num);
 
@@ -64,7 +64,7 @@ public class RejectionSampler3Concordant {
 		double[] waitingTimes = new double[numberOfRankingExemplars];
 		double[] prop4cyc = new double[numberOfRankingExemplars];
  		int counter = 0;
-		long maxIter = 1_000_000_000;
+		long maxIter = Long.MAX_VALUE;
 		logger.info("Rejection sampling for 3- concordant ranking systems on " + num + " points with " + numberOfRankingExemplars
 				+ " repetitions.");
 		logger.info("A sample of " + num4subsets + " 4-tuples with replacement will be taken for each.");
@@ -93,8 +93,8 @@ public class RejectionSampler3Concordant {
 		/*
 		 * Last example of random rank table
 		 */
-		if (test.n < 10) {
-			logger.info("Uniform 3-concordant random rank table ");
+		if (test.n < 12) {
+			logger.info("Uniform 3-concordant random rank table, n =  " + num);
 			test.printRankTable();
 			logger.info("Is it 3-concordant? " + test.rs.test3Concordance());
 		}
