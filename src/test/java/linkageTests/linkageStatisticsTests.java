@@ -1,8 +1,8 @@
 package linkageTests;
 
-public class linkageStatitisticsTests {
+public class linkageStatisticsTests {
 
-	public linkageStatitisticsTests() {
+	public linkageStatisticsTests() {
 		// TODO Auto-generated constructor stub
 	}
 

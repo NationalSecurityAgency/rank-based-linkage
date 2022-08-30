@@ -60,7 +60,7 @@ public class RejectionSampler3Concordant {
 		 * Generate a series of truly uniform 3- concordant ranking systems, and check
 		 * number of times a random 4-subset of objects gives a 4-cycle
 		 */
-		int numberOfRankingExemplars = 1000;
+		int numberOfRankingExemplars = 300;
 		double[] waitingTimes = new double[numberOfRankingExemplars];
 		double[] prop4cyc = new double[numberOfRankingExemplars];
  		int counter = 0;
