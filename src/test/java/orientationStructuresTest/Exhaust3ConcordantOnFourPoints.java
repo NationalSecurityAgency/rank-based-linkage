@@ -1,17 +1,10 @@
 package orientationStructuresTest;
 
-import java.io.IOException;
 import java.util.Arrays;
-import java.util.OptionalInt;
-import java.util.Random;
-import java.util.logging.FileHandler;
 import java.util.logging.Level;
-import java.util.logging.LogManager;
-import java.util.logging.Logger;
-import java.util.stream.IntStream;
 
-import orientationStructures.RankingSystem;
-import utilities.HTMLFormatter;
+import logging.GlobalLog;
+import orientationStructures.ConcordanceExplorer;
 
 /**
  * Count 3-concordant on 4 points. In how many is {01, 12, 23, 03} a 4-cycle?
@@ -21,8 +14,7 @@ import utilities.HTMLFormatter;
  */
 public class Exhaust3ConcordantOnFourPoints {
 
-	static Logger logger = Logger.getLogger(Exhaust3ConcordantOnFourPoints.class.getName());
-	RankingSystem r3c;
+	ConcordanceExplorer r3c;
 	final int n;
 
 	/**
@@ -30,24 +22,26 @@ public class Exhaust3ConcordantOnFourPoints {
 	 * @param num size of set of points
 	 */
 	public Exhaust3ConcordantOnFourPoints() {
+		GlobalLog.log(Level.INFO, "Instance of " + Exhaust3ConcordantOnFourPoints.class.getName());
 		this.n = 4;
-		r3c = new RankingSystem(n);
-		this.initializeHTMLLogger(System.currentTimeMillis());
+		r3c = new ConcordanceExplorer(n);
+
 	}
 
 	void printRankTable() {
 		int[][] table = this.r3c.getRankTable();
 		for (int r = 0; r < this.n; r++) {
-			logger.info("Ranks from r: " + Arrays.toString(table[r]));
+			GlobalLog.log(Level.INFO, "Ranks from r: " + Arrays.toString(table[r]));
 		}
 	}
 
 	void fourExhaust() {
 		int[] fourExhaust = this.r3c.produceAll3ConcordantTables4Points();
-		logger.info("Number of 3-concordant ranking tables on 4 points: " + fourExhaust[0]);
-		logger.info("Of these, number in which {01, 12, 23, 03} is a 4-cycle: " + fourExhaust[1]);
-		double p4cycle = (double)fourExhaust[1] / (double)fourExhaust[0];
-		logger.info("Sampling a 3-simplex in a uniform 3-concordant ranking system: 4-cycle probability: " + p4cycle);
+		GlobalLog.log(Level.INFO, "Number of 3-concordant ranking tables on 4 points: " + fourExhaust[0]);
+		GlobalLog.log(Level.INFO, "Of these, number in which {01, 12, 23, 03} is a 4-cycle: " + fourExhaust[1]);
+		double p4cycle = (double) fourExhaust[1] / (double) fourExhaust[0];
+		GlobalLog.log(Level.INFO,
+				"Sampling a 3-simplex in a uniform 3-concordant ranking system: 4-cycle probability: " + p4cycle);
 	}
 
 	/**
@@ -65,25 +59,6 @@ public class Exhaust3ConcordantOnFourPoints {
 			test.printRankTable();
 		}
 		test.fourExhaust();
-	}
-
-	/**
-	 * 
-	 * @param time stamp
-	 */
-	private void initializeHTMLLogger(long timestamp) {
-		try {
-			LogManager lm = LogManager.getLogManager();
-			FileHandler html_handler = new FileHandler(timestamp + "-log-rs.html", true); // produced, readable
-			lm.addLogger(logger);
-			logger.setLevel(Level.ALL);
-			html_handler.setFormatter(new HTMLFormatter());
-			logger.addHandler(html_handler);
-		} catch (SecurityException e) {
-			e.printStackTrace();
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
 	}
 
 }

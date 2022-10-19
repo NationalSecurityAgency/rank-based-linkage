@@ -5,8 +5,8 @@ package orientationStructures;
 
 /**
  * When x is source, y is target, the record indicates that y is the k-th
- * nearest neighbor of x, according to x's ranking. Such records are used for
- * data exchange.
+ * nearest neighbor of x, according to x's ranking. Such records are used in
+ * {@link algorithms.LinkageGraphBuilder}
  * 
  * @author <a href="https://github.com/probabilist-us">R. W. R. Darling</a>
  *

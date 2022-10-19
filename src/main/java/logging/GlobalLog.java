@@ -19,7 +19,7 @@ import java.util.logging.Logger;
  *
  */
 public class GlobalLog {
-	private final String prefix = "Hidden_Ancestor_Graph_Log";
+	private final String prefix = "Rank-Based_Linkage_Log";
 	private static Logger logger;
 	private Handler html_Handler;
 	private LogManager lm;

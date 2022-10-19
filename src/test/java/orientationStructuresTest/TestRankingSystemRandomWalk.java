@@ -7,23 +7,22 @@ import java.util.Random;
 import java.util.logging.FileHandler;
 import java.util.logging.Level;
 import java.util.logging.LogManager;
-import java.util.logging.Logger;
 import java.util.stream.IntStream;
 
-import orientationStructures.RankingSystem;
-import utilities.HTMLFormatter;
+import logging.GlobalLog;
+import logging.HTMLFormatter;
+import orientationStructures.ConcordanceExplorer;
 
 /**
- * Test {@link RankingSystem} class. Example: for n = 1000, 249M edge
- * flips can be completed in 21 seconds.
+ * Test {@link ConcordanceExplorer} class. Example: for n = 1000, 249M edge flips can
+ * be completed in 21 seconds.
  * 
  * @author <a href="https://github.com/probabilist-us">R. W. R. Darling</a>
  *
  */
 public class TestRankingSystemRandomWalk {
 
-	static Logger logger = Logger.getLogger(TestRankingSystemRandomWalk.class.getName());
-	RankingSystem r3c;
+	ConcordanceExplorer r3c;
 	Random g;
 	final int n, num1Simplices;
 
@@ -32,17 +31,17 @@ public class TestRankingSystemRandomWalk {
 	 * @param num size of set of points
 	 */
 	public TestRankingSystemRandomWalk(int num) {
+		GlobalLog.log(Level.INFO, "Instance of " + TestRankingSystemRandomWalk.class.getName());
 		this.n = num;
 		this.num1Simplices = n * (n - 1) * (n - 2) / 2;
-		r3c = new RankingSystem(n);
+		r3c = new ConcordanceExplorer(n);
 		g = new Random();
-		this.initializeHTMLLogger(System.currentTimeMillis());
 	}
 
 	void printRankTable() {
 		int[][] table = this.r3c.getRankTable();
 		for (int r = 0; r < this.n; r++) {
-			logger.info("Ranks from r: " + Arrays.toString(table[r]));
+			GlobalLog.log(Level.INFO, "Ranks from r: " + Arrays.toString(table[r]));
 		}
 	}
 
@@ -55,7 +54,7 @@ public class TestRankingSystemRandomWalk {
 			int y = r % n; // e.g. 7
 			int s = (r - y) / n; // e.g. 8
 			int z = s % n; // e.g. 8
-			logger.warning("2-simplex {" + x + ", " + y + ", " + z + "} is a directed cycle.");
+			GlobalLog.log(Level.WARNING, "2-simplex {" + x + ", " + y + ", " + z + "} is a directed cycle.");
 		}
 	}
 
@@ -72,23 +71,23 @@ public class TestRankingSystemRandomWalk {
 		 */
 		test.r3c.generateUniformRandomRankTable();
 		if (test.n < 10) {
-			logger.info("Uniform random rank table, not necessarily 3-concordant");
+			GlobalLog.log(Level.INFO, "Uniform random rank table, not necessarily 3-concordant");
 			test.printRankTable();
-			logger.info("Is it 3-concordant? " + test.r3c.test3Concordance());
+			GlobalLog.log(Level.INFO, "Is it 3-concordant? " + test.r3c.test3Concordance());
 		}
 		/*
 		 * Check initialization
 		 */
 		test.r3c.generateConcordant();
 		if (test.n < 10) {
-			logger.info("Rank table of random topological sort of 0-simplices");
+			GlobalLog.log(Level.INFO, "Rank table of random topological sort of 0-simplices");
 			test.printRankTable();
 		}
 		double start = (double) System.currentTimeMillis();
 		boolean threeConcordant = test.r3c.test3Concordance();
 		double duration = (double) (System.currentTimeMillis() - start) / 1000.0;
-		logger.info("Time to check all voter triangles are cycle-free: " + duration + " seconds.");
-		logger.info("3-concordant at initialization? " + threeConcordant);
+		GlobalLog.log(Level.INFO, "Time to check all voter triangles are cycle-free: " + duration + " seconds.");
+		GlobalLog.log(Level.INFO, "3-concordant at initialization? " + threeConcordant);
 		if (!threeConcordant) {
 			test.report3Cycle();
 		}
@@ -98,51 +97,34 @@ public class TestRankingSystemRandomWalk {
 		double meanSteps = (double) test.num1Simplices / 2.0;
 		double sdSteps = Math.sqrt(meanSteps);
 		int numSteps = (int) Math.round(meanSteps + sdSteps * test.g.nextGaussian());
-		logger.info("n = " + test.n + ": # 1-simplices = " + test.num1Simplices + "; random # of steps: " + numSteps);
+		GlobalLog.log(Level.INFO,
+				"n = " + test.n + ": # 1-simplices = " + test.num1Simplices + "; random # of steps: " + numSteps);
 		/*
 		 * Perform edge flip process
 		 */
 		start = (double) System.currentTimeMillis();
 		test.r3c.edgeFlipProcess(numSteps);
 		duration = (double) (System.currentTimeMillis() - start) / 1000.0;
-		logger.info(test.r3c.getNumFlips() + " edge flips performed in " + duration + " seconds.");
+		GlobalLog.log(Level.INFO, test.r3c.getNumFlips() + " edge flips performed in " + duration + " seconds.");
 		if (test.n < 10) {
 			test.printRankTable();
 		}
 		boolean threeConcordantAfter = test.r3c.test3Concordance();
-		logger.info("3-concordant after edge flips? " + threeConcordantAfter);
+		GlobalLog.log(Level.INFO, "3-concordant after edge flips? " + threeConcordantAfter);
 
 		/*
 		 * Test sampling without replacement
 		 */
 		int[] quad = test.g.ints(0, test.n).distinct().limit(4).toArray();
-		logger.info("Sample, size 4, no repeats " + Arrays.toString(quad));
+		GlobalLog.log(Level.INFO, "Sample, size 4, no repeats " + Arrays.toString(quad));
 		int quadSampleSize = 1000000;
 
 		int number4Cycles = test.r3c.detect4CyclesFromSample(quadSampleSize);
-		logger.info("In a sample of " + quadSampleSize + " 3-simplices, " + number4Cycles + " 4-cycles were found.");
+		GlobalLog.log(Level.INFO,
+				"In a sample of " + quadSampleSize + " 3-simplices, " + number4Cycles + " 4-cycles were found.");
 		double proportion4Cycles = (double) number4Cycles / (double) quadSampleSize;
-		logger.info("Percentage of 4-cycles: " + (100.0 * proportion4Cycles));
+		GlobalLog.log(Level.INFO, "Percentage of 4-cycles: " + (100.0 * proportion4Cycles));
 
-	}
-
-	/**
-	 * 
-	 * @param time stamp
-	 */
-	private void initializeHTMLLogger(long timestamp) {
-		try {
-			LogManager lm = LogManager.getLogManager();
-			FileHandler html_handler = new FileHandler(timestamp + "-log-rs.html", true); // produced, readable
-			lm.addLogger(logger);
-			logger.setLevel(Level.ALL);
-			html_handler.setFormatter(new HTMLFormatter());
-			logger.addHandler(html_handler);
-		} catch (SecurityException e) {
-			e.printStackTrace();
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
 	}
 
 }

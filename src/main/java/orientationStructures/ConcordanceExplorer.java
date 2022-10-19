@@ -26,7 +26,7 @@ import java.util.stream.IntStream;
  * @author <a href="https://github.com/probabilist-us">R. W. R. Darling</a>
  *
  */
-public class RankingSystem {
+public class ConcordanceExplorer {
 
 	private final int n;
 	private final List<Integer> points;// Objects are treated as the set S:={0, 1, 2, ..., n-1}.
@@ -38,7 +38,7 @@ public class RankingSystem {
 	private int numFlips;
 	SplittableRandom g;
 
-	public RankingSystem(int numPoints) {
+	public ConcordanceExplorer(int numPoints) {
 		/*
 		 * List of Integers 0, 1, 2, ... ,n-1
 		 */
