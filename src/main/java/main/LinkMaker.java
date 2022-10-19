@@ -1,4 +1,11 @@
+/* THIS PUBLIC DOMAIN SOFTWARE WAS PRODUCED BY AN EMPLOYEE OF U.S. GOVERNMENT 
+ * AS PART OF THEIR OFFICIAL DUTIES.
+ */
 package main;
+
+import java.util.logging.Level;
+
+import logging.GlobalLog;
 
 /**
  * Takes an orientation of the line graph of an undirected K-nearest neighbor
@@ -14,7 +21,7 @@ package main;
 public class LinkMaker {
 
 	public LinkMaker() {
-		// TODO Auto-generated constructor stub
+		GlobalLog.log(Level.INFO, "Instance of " + LinkMaker.class.getName());
 	}
 
 	public static void main(String[] args) {

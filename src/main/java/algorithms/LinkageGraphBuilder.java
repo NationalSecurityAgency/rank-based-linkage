@@ -1,5 +1,5 @@
-/**
- * @author rwdarli@uwe.nsa.gov
+/* THIS PUBLIC DOMAIN SOFTWARE WAS PRODUCED BY AN EMPLOYEE OF U.S. GOVERNMENT 
+ * AS PART OF THEIR OFFICIAL DUTIES.
  */
 package algorithms;
 

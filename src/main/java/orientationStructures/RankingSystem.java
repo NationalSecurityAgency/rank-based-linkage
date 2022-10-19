@@ -1,3 +1,6 @@
+/* THIS PUBLIC DOMAIN SOFTWARE WAS PRODUCED BY AN EMPLOYEE OF U.S. GOVERNMENT 
+ * AS PART OF THEIR OFFICIAL DUTIES.
+ */
 package orientationStructures;
 
 import java.util.ArrayList;
@@ -15,8 +18,10 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 /**
- * Data structure with utility methods for ranking systems, and for testing for
- * 3-concordance.
+ * Research tool with test classes for generating 3-concordant ranking systems.
+ * Provides array-based data structures {@link getRankTable} and
+ * {@link getOrderedNeighbors}, utility methods for ranking systems, and
+ * methods for testing for 3-concordance. Not needed directly for rank-based linkage.
  * 
  * @author <a href="https://github.com/probabilist-us">R. W. R. Darling</a>
  *
@@ -27,11 +32,7 @@ public class RankingSystem {
 	private final List<Integer> points;// Objects are treated as the set S:={0, 1, 2, ..., n-1}.
 	private final List<Integer> ranks; // {1, 2, ..., n}
 	/*
-	 * rankTable[x][y] = k means y is the k-th nearest neighbor of x, according to
-	 * x's ranking. The same relationship is expressed by orderedNeighbors[x][k] =
-	 * y, where the objects are treated as the set S:={0, 1, 2, ..., n-1}, and ranks
-	 * k are elements of {1, 2, ...,n-1}. By convention rankTable[x][x] = 0.
-	 * 
+	 * see getRankTable() method
 	 */
 	private int[][] rankTable, orderedNeighbors;
 	private int numFlips;
@@ -389,13 +390,19 @@ public class RankingSystem {
 
 	/**
 	 * @return the rank Table
+	 *         <p>
+	 *         rankTable[x][y] = k means y is the k-th nearest neighbor of x,
+	 *         according to x's ranking. The same relationship is expressed by
+	 *         orderedNeighbors[x][k] = y, where the objects are treated as the set
+	 *         S:={0, 1, 2, ..., n-1}, and ranks k are elements of {1, 2, ...,n-1}.
+	 *         By convention rankTable[x][x] = 0.
 	 */
 	public int[][] getRankTable() {
 		return rankTable;
 	}
 
 	/**
-	 * @return the ordered Neighbors
+	 * @return the ordered Neighbors. Explained under {@link getRankTable}
 	 */
 	public int[][] getOrderedNeighbors() {
 		return orderedNeighbors;
