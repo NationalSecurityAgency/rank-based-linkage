@@ -18,10 +18,11 @@ package readWrite;
  */
 public record StringPairWithWeight(String source, String target, double weight) {
 
-	@Override
-	public boolean equals(Object obj) {
-		return this.toString().equals(obj.toString());
-	}
+// superfluous, since default for record does the same thing
+	/*
+	 * public boolean equals(Object obj) { return
+	 * this.toString().equals(obj.toString()); }
+	 */
 
 	@Override
 	public int hashCode() {

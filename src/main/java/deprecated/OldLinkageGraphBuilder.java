@@ -1,7 +1,7 @@
 /* THIS PUBLIC DOMAIN SOFTWARE WAS PRODUCED BY AN EMPLOYEE OF U.S. GOVERNMENT 
  * AS PART OF THEIR OFFICIAL DUTIES.
  */
-package algorithms;
+package deprecated;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -12,7 +12,7 @@ import orientationStructures.NeighborRecord;
  * @author <a href="https://github.com/probabilist-us">R. W. R. Darling</a>
  *
  */
-public class LinkageGraphBuilder {
+public class OldLinkageGraphBuilder {
 	final int K;
 	List<NeighborRecord> partialRankings;
 	
@@ -20,7 +20,7 @@ public class LinkageGraphBuilder {
 	/**
 	 * 
 	 */
-	public LinkageGraphBuilder(int numNeighbors) {
+	public OldLinkageGraphBuilder(int numNeighbors) {
 		this.K = numNeighbors;
 	}
 

@@ -6,7 +6,7 @@ package orientationStructures;
 /**
  * When x is source, y is target, the record indicates that y is the k-th
  * nearest neighbor of x, according to x's ranking. Such records are used in
- * {@link algorithms.LinkageGraphBuilder}
+ * {@link deprecated.OldLinkageGraphBuilder}
  * 
  * @author <a href="https://github.com/probabilist-us">R. W. R. Darling</a>
  *
@@ -19,11 +19,11 @@ public record NeighborRecord(String source, String target, int rank) {
 	public String toString() {
 		return source + " " + target + " " + Integer.toString(rank);
 	}
-
-	@Override
-	public boolean equals(Object obj) {
-		return this.toString().equals(obj.toString());
-	}
+	// superfluous, since default for record does the same thing
+	/*
+	 * public boolean equals(Object obj) { return
+	 * this.toString().equals(obj.toString()); }
+	 */
 
 	@Override
 	public int hashCode() {

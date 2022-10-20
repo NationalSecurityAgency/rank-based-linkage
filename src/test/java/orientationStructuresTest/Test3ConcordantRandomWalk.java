@@ -20,7 +20,7 @@ import orientationStructures.ConcordanceExplorer;
  * @author <a href="https://github.com/probabilist-us">R. W. R. Darling</a>
  *
  */
-public class TestRankingSystemRandomWalk {
+public class Test3ConcordantRandomWalk {
 
 	ConcordanceExplorer r3c;
 	Random g;
@@ -30,8 +30,8 @@ public class TestRankingSystemRandomWalk {
 	 * 
 	 * @param num size of set of points
 	 */
-	public TestRankingSystemRandomWalk(int num) {
-		GlobalLog.log(Level.INFO, "Instance of " + TestRankingSystemRandomWalk.class.getName());
+	public Test3ConcordantRandomWalk(int num) {
+		GlobalLog.log(Level.INFO, "Instance of " + Test3ConcordantRandomWalk.class.getName());
 		this.n = num;
 		this.num1Simplices = n * (n - 1) * (n - 2) / 2;
 		r3c = new ConcordanceExplorer(n);
@@ -65,7 +65,7 @@ public class TestRankingSystemRandomWalk {
 	 */
 	public static void main(String[] args) {
 		int num = 1000;
-		TestRankingSystemRandomWalk test = new TestRankingSystemRandomWalk(num);
+		Test3ConcordantRandomWalk test = new Test3ConcordantRandomWalk(num);
 		/*
 		 * Generate a uniform random rank table
 		 */

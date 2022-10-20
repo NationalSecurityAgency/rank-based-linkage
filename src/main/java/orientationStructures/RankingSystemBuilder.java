@@ -24,7 +24,7 @@ import readWrite.StringPairWithWeight;
  * {@link org.jgrapht.opt.graph.sparse.SparseIntUndirectedWeightedGraph} object,
  * as wished.
  * <p>
- * Also a {@link java.util.Comparator} on the neighbors of a vertex
+ * Tested 10.20.2022
  * 
  * @author <a href="https://github.com/probabilist-us">R. W. R. Darling</a>
  *
@@ -38,9 +38,18 @@ public class RankingSystemBuilder {
 	private SparseIntDirectedWeightedGraph digraph; // option 1
 	private SparseIntUndirectedWeightedGraph graph; // option 2
 
-	public RankingSystemBuilder(List<StringPairWithWeight> edgeRecords) {
+	public RankingSystemBuilder() {
 		GlobalLog.log(Level.INFO, "Instance of " + RankingSystemBuilder.class.getName());
+	}
+
+	/**
+	 * First method to invoke.
+	 * 
+	 * @param edgeRecords list of "source, target, weight" triples
+	 */
+	public void setStwList(List<StringPairWithWeight> edgeRecords) {
 		this.stwList = edgeRecords;
+		;
 	}
 
 	/*
@@ -71,7 +80,8 @@ public class RankingSystemBuilder {
 	}
 
 	/**
-	 * Creates a directed or undirected graph, depending on the boolean argument.
+	 * Second method to invoke. Creates a directed or undirected graph, depending on
+	 * the boolean argument.
 	 * 
 	 * @param isDirected refers to whether the "source, target, weight" records are
 	 *                   directed.

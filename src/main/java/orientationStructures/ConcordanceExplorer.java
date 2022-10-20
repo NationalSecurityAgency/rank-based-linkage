@@ -182,7 +182,7 @@ public class ConcordanceExplorer {
 	 * Doubts about whether O(n^4) or O(n^3 log(n)) edge flips are needed. The state
 	 * space of the random walk has about (n!)^n elements.
 	 * <p>
-	 * Tested in {@link TestRankingSystemRandomWalk} class.
+	 * Tested in {@link Test3ConcordantRandomWalk} class.
 	 * <p>
 	 * Storage requirement: O(n^2)
 	 * <p>
