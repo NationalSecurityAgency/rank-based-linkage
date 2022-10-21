@@ -35,6 +35,7 @@ public class LinkageFromWeightedGraph {
 	 * (unordered) is a source.
 	 */
 	private Map<UnorderedPair<Integer, Integer>, Double> insway;
+	private Set<UnorderedPair<Integer, Integer>> visitedPairs; // reusable set during RBL
 	/*
 	 * Graph to be built from links of positive insway.
 	 */
@@ -63,6 +64,7 @@ public class LinkageFromWeightedGraph {
 		this.inputGraphIsDirected = inputGraphIsDirected;
 		this.higherWeightMoreSimilar = higherWeightMoreSimilar;
 		this.insway = new HashMap<>();
+		this.visitedPairs = new HashSet<>();
 	}
 
 	/**
@@ -122,37 +124,47 @@ public class LinkageFromWeightedGraph {
 	}
 
 	/*
-	 * IN A MUDDLE!
+	 * Is y one of the friends of x?
+	 */
+	private boolean isFriendOf(int x, int y) {
+		if (this.inputGraphIsDirected) {
+			return this.dataDigraph.containsEdge(x, y);
+		} else {
+			return this.dataGraph.containsEdge(x, y);
+		}
+	}
+
+	/*
+	 * 
 	 * True if xz is the source in the 2-simplex {xz, yz, xy}. Invoked only when x
 	 * and z are mutual friends; however y need be a friend of neither x nor z.
 	 */
-	private boolean firstElementIsSource(UnorderedPair<Integer, Integer> xz, int y) {
+	private boolean xzIsSource(UnorderedPair<Integer, Integer> xz, int y) {
 		int x = xz.getFirst();
 		int z = xz.getSecond();
-		boolean yFriendOfx;
-		boolean yFriendOfz;
-		//SEPARATE METHOD HERE
-		if (this.inputGraphIsDirected) {
-			yFriendOfx = this.dataDigraph.containsEdge(x,y);
-			yFriendOfz = this.dataDigraph.containsEdge(z,y);
-		} else {
-			yFriendOfx = this.dataGraph.containsEdge(x,y);
-			yFriendOfz = this.dataGraph.containsEdge(z,y);
-		}
-		boolean xzBeatsxy;
-		boolean xzBeatsyz;
-		return false;
+		boolean xzBeatsxy = (!this.isFriendOf(x, y)) || this.moreSimilarTo(x, z, y);
+		boolean xzBeatsyz = (!this.isFriendOf(z, y)) || this.moreSimilarTo(z, x, y);
+		return xzBeatsxy && xzBeatsyz;
 	}
 
 	/**
-	 * Rank-based linkage is implemented here.
+	 * Inner loop of rank-based linkage is implemented here.
+	 * INstead of a Map, do we want a list of Map.Entry? Better for the flatmap?
 	 */
-	public void computeInsway() {
+	public Map<UnorderedPair<Integer, Integer>, Integer> localInswayAt(int y) {
 		/*
-		 * Temporary store of {x, z} pairs visited for this y
+		 * Clear temporary store of {x, z} pairs visited.
 		 */
-		Set<UnorderedPair<Integer, Integer>> visitedPairs = new HashSet<>();
+		this.visitedPairs.clear();
+		Map<UnorderedPair<Integer, Integer>, Integer> localInsway = new HashMap<>();
+		// TODO
 
+		return localInsway;
 	}
+
+	/**
+	 * Big picture for RBL. (1) IntStream.range(0,n).parallel().map(y->localInswayAt(y))
+	 * .flatmap().groupingBy(key).collect(Collectors.toMap(?,?));
+	 */
 
 }
