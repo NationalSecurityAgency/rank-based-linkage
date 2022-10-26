@@ -12,7 +12,6 @@ import java.util.stream.IntStream;
 
 import org.jgrapht.alg.util.Triple;
 import org.jgrapht.opt.graph.sparse.SparseIntDirectedWeightedGraph;
-import org.jgrapht.opt.graph.sparse.SparseIntUndirectedWeightedGraph;
 
 import logging.GlobalLog;
 import readWrite.StringPairWithWeight;
@@ -20,9 +19,7 @@ import readWrite.StringPairWithWeight;
 /**
  * Takes a List of {@link readWrite.StringPairWithWeight} records, indexes the
  * source and target objects by integers 0 to n &minus; 1, and builds a
- * {@link org.jgrapht.opt.graph.sparse.SparseIntDirectedWeightedGraph} object or
- * {@link org.jgrapht.opt.graph.sparse.SparseIntUndirectedWeightedGraph} object,
- * as wished.
+ * {@link org.jgrapht.opt.graph.sparse.SparseIntDirectedWeightedGraph} object.
  * <p>
  * Tested 10.20.2022
  * 
@@ -35,8 +32,7 @@ public class RankingSystemBuilder {
 	private Map<String, Integer> vertexIndex; // maps string s to integer i if sourceStrings.get(i) = s
 	private List<StringPairWithWeight> stwList; // stw means "source, target, weight"
 	private int nV; // source vertex count
-	private SparseIntDirectedWeightedGraph digraph; // option 1
-	private SparseIntUndirectedWeightedGraph graph; // option 2
+	private SparseIntDirectedWeightedGraph digraph;
 
 	public RankingSystemBuilder() {
 		GlobalLog.log(Level.INFO, "Instance of " + RankingSystemBuilder.class.getName());
@@ -80,22 +76,13 @@ public class RankingSystemBuilder {
 	}
 
 	/**
-	 * Second method to invoke. Creates a directed or undirected graph, depending on
-	 * the boolean argument.
-	 * 
-	 * @param isDirected refers to whether the "source, target, weight" records are
-	 *                   directed.
+	 * Second method to invoke. Creates a directed graph.
 	 */
-	public void buildSparseDirectedGraph(boolean isDirected) {
+	public void buildSparseDirectedGraph() {
 		this.buildObjectIndex();
 		GlobalLog.log(Level.INFO, "Edge list built, with " + nV + " entries.");
-		if (isDirected) {
-			this.digraph = new SparseIntDirectedWeightedGraph(this.nV, this.buildEdgeList());
-			GlobalLog.log(Level.INFO, "Directed graph built, with " + this.digraph.edgeSet().size() + " edges");
-		} else {
-			this.graph = new SparseIntUndirectedWeightedGraph(this.nV, this.buildEdgeList());
-			GlobalLog.log(Level.INFO, "Undirected graph built, with " + this.graph.edgeSet().size() + " edges");
-		}
+		this.digraph = new SparseIntDirectedWeightedGraph(this.nV, this.buildEdgeList());
+		GlobalLog.log(Level.INFO, "Directed graph built, with " + this.digraph.edgeSet().size() + " edges");
 	}
 
 	/**
@@ -124,13 +111,6 @@ public class RankingSystemBuilder {
 	 */
 	public SparseIntDirectedWeightedGraph getDigraph() {
 		return digraph;
-	}
-
-	/**
-	 * @return the graph
-	 */
-	public SparseIntUndirectedWeightedGraph getGraph() {
-		return graph;
 	}
 
 }

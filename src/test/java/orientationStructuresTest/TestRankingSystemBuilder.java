@@ -40,9 +40,8 @@ public class TestRankingSystemBuilder {
 		GlobalLog.log(Level.INFO, "Edge list has size " + nEdges);
 		test.rsb.setStwList(test.reader.getWeightedEdges());
 		GlobalLog.log(Level.INFO, "Edge list has been passed to RankingSystemBuilder.");
-		boolean graphIsDirected = true;
 		double start = (double) System.currentTimeMillis();
-		test.rsb.buildSparseDirectedGraph(graphIsDirected);
+		test.rsb.buildSparseDirectedGraph();
 		double duration = (double) (System.currentTimeMillis() - start) / 1000.0;
 		GlobalLog.log(Level.INFO, "Sparse directed graph built in " + duration + " seconds.");
 		/*

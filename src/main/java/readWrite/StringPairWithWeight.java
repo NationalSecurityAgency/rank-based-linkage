@@ -4,14 +4,10 @@
 package readWrite;
 
 /**
- * Ingested data consists of many lines, where each line contains a triple
- * interpreted as a record of this type.
+ * Record class to represent a weighted directed edge.
  * <p>
- * First interpretation: weighted undirected edge
- * <p>
- * Second interpretation: weighted directed edge. In that case there might be
- * another record where the source and target strings are switched and the
- * weight may be different.
+ * Even when similarity between x and y is symmetric, the relation "is one of
+ * the k nearest neighbors of" is not symmetric.
  * 
  * @author <a href="https://github.com/probabilist-us">R. W. R. Darling</a>
  *
