@@ -18,10 +18,10 @@ import logging.GlobalLog;
  * @author <a href="https://github.com/probabilist-us">R. W. R. Darling</a>
  *
  */
-public class LinkMaker {
+public class RankBasedClustering {
 
-	public LinkMaker() {
-		GlobalLog.log(Level.INFO, "Instance of " + LinkMaker.class.getName());
+	public RankBasedClustering() {
+		GlobalLog.log(Level.INFO, "Instance of " + RankBasedClustering.class.getName());
 	}
 
 	public static void main(String[] args) {
