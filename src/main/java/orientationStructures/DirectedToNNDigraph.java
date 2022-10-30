@@ -22,11 +22,17 @@ import readWrite.StringPairWithWeight;
  * {@link org.jgrapht.opt.graph.sparse.SparseIntDirectedWeightedGraph} object.
  * <p>
  * Tested 10.20.2022
+ * <p>
+ * TODO
+ * <p>
+ * (1) 2-core extraction.
+ * <p>
+ * (2) deletion of all but K-NN
  * 
  * @author <a href="https://github.com/probabilist-us">R. W. R. Darling</a>
  *
  */
-public class RankingSystemBuilder {
+public class DirectedToNNDigraph implements NearestNeighborsDigraphSupplier {
 
 	private List<String> sourceStrings; // list of distinct elements
 	private Map<String, Integer> vertexIndex; // maps string s to integer i if sourceStrings.get(i) = s
@@ -34,8 +40,8 @@ public class RankingSystemBuilder {
 	private int nV; // source vertex count
 	private SparseIntDirectedWeightedGraph digraph;
 
-	public RankingSystemBuilder() {
-		GlobalLog.log(Level.INFO, "Instance of " + RankingSystemBuilder.class.getName());
+	public DirectedToNNDigraph() {
+		GlobalLog.log(Level.INFO, "Instance of " + DirectedToNNDigraph.class.getName());
 	}
 
 	/**
@@ -43,16 +49,16 @@ public class RankingSystemBuilder {
 	 * 
 	 * @param edgeRecords list of "source, target, weight" triples
 	 */
-	public void setStwList(List<StringPairWithWeight> edgeRecords) {
+	public void setSourceTargetWeightList(List<StringPairWithWeight> edgeRecords) {
 		this.stwList = edgeRecords;
-		;
+
 	}
 
-	/*
+	/**
 	 * Preparation for making a graph with vertices indexed by integers 0 to n
 	 * &minus 1
 	 */
-	private void buildObjectIndex() {
+	public void buildObjectIndex() {
 		this.sourceStrings = this.stwList.stream().map(r -> r.source()).distinct()
 				.collect(Collectors.toUnmodifiableList());
 		this.nV = this.sourceStrings.size();
@@ -83,6 +89,10 @@ public class RankingSystemBuilder {
 		GlobalLog.log(Level.INFO, "Edge list built, with " + nV + " entries.");
 		this.digraph = new SparseIntDirectedWeightedGraph(this.nV, this.buildEdgeList());
 		GlobalLog.log(Level.INFO, "Directed graph built, with " + this.digraph.edgeSet().size() + " edges");
+	}
+	
+	public void extractTwoCore() {
+		//TODO
 	}
 
 	/**

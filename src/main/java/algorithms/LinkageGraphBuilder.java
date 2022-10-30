@@ -131,11 +131,9 @@ public class LinkageGraphBuilder {
 	/**
 	 * First builds mutual friend pairs via a parallel stream.
 	 * <p>
-	 * Shuffle the list to improve parallelizability of insway computation.
-	 * <p>
 	 * Build weighted edges set of linkage graph via a parallel stream.
 	 * <p>
-	 * Frnally create a sparse elinkage graph.
+	 * Frnally create a sparse linkage graph.
 	 */
 	public void buildLinkageGraph() {
 		this.mutualFriends = this.dataDigraph.edgeSet().parallelStream()
@@ -143,7 +141,8 @@ public class LinkageGraphBuilder {
 				.map(e -> new UnorderedPair<>(this.dataDigraph.getEdgeSource(e), dataDigraph.getEdgeTarget(e)))
 				.toList();
 		GlobalLog.log(Level.INFO, "Mutual friends list built with " + this.mutualFriends.size() + " pairs.");
-		//Collections.shuffle(this.mutualFriends); // optional, designed to avoid hot spots
+		// Collections.shuffle(this.mutualFriends); // not allowed for immutable
+		// collection
 		/*
 		 * Edges of the linkage graph and their insway are built as a stresm
 		 */

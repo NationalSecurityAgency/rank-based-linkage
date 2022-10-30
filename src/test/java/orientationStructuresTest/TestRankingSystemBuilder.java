@@ -7,7 +7,7 @@ import java.util.Random;
 import java.util.logging.Level;
 
 import logging.GlobalLog;
-import orientationStructures.RankingSystemBuilder;
+import orientationStructures.DirectedToNNDigraph;
 import readWrite.StringPairCSVReader;
 import readWrite.StringPairWithWeight;
 import readWriteTests.TestStringPairCSVReader;
@@ -17,7 +17,7 @@ import readWriteTests.TestStringPairCSVReader;
  *
  */
 public class TestRankingSystemBuilder {
-	RankingSystemBuilder rsb;
+	DirectedToNNDigraph rsb;
 	StringPairCSVReader reader;
 
 	/**
@@ -26,7 +26,7 @@ public class TestRankingSystemBuilder {
 	public TestRankingSystemBuilder() {
 		GlobalLog.log(Level.INFO, "Instance of " + TestRankingSystemBuilder.class.getName());
 		this.reader = new StringPairCSVReader();
-		this.rsb = new RankingSystemBuilder();
+		this.rsb = new DirectedToNNDigraph();
 	}
 
 	/**
@@ -38,8 +38,8 @@ public class TestRankingSystemBuilder {
 		test.reader.readStringPairsWithWeights(fileName);
 		int nEdges = test.reader.getWeightedEdges().size();
 		GlobalLog.log(Level.INFO, "Edge list has size " + nEdges);
-		test.rsb.setStwList(test.reader.getWeightedEdges());
-		GlobalLog.log(Level.INFO, "Edge list has been passed to RankingSystemBuilder.");
+		test.rsb.setSourceTargetWeightList(test.reader.getWeightedEdges());
+		GlobalLog.log(Level.INFO, "Edge list has been passed to DirectedToNNDigraph.");
 		double start = (double) System.currentTimeMillis();
 		test.rsb.buildSparseDirectedGraph();
 		double duration = (double) (System.currentTimeMillis() - start) / 1000.0;

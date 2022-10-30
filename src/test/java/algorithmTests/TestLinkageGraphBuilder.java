@@ -8,7 +8,7 @@ import java.util.logging.Level;
 
 import algorithms.LinkageGraphBuilder;
 import logging.GlobalLog;
-import orientationStructures.RankingSystemBuilder;
+import orientationStructures.DirectedToNNDigraph;
 import readWrite.StringPairCSVReader;
 
 /**
@@ -16,7 +16,7 @@ import readWrite.StringPairCSVReader;
  *
  */
 public class TestLinkageGraphBuilder {
-	RankingSystemBuilder rsb;
+	DirectedToNNDigraph rsb;
 	StringPairCSVReader reader;
 	LinkageGraphBuilder lgb;
 	final boolean higherWeightMoreSimilar = true;
@@ -27,7 +27,7 @@ public class TestLinkageGraphBuilder {
 	public TestLinkageGraphBuilder() {
 		GlobalLog.log(Level.INFO, "Instance of " + TestLinkageGraphBuilder.class.getName());
 		this.reader = new StringPairCSVReader();
-		this.rsb = new RankingSystemBuilder();
+		this.rsb = new DirectedToNNDigraph();
 		this.lgb = new LinkageGraphBuilder(higherWeightMoreSimilar);
 	}
 
@@ -40,8 +40,8 @@ public class TestLinkageGraphBuilder {
 		test.reader.readStringPairsWithWeights(fileName);
 		int nEdges = test.reader.getWeightedEdges().size();
 		GlobalLog.log(Level.INFO, "Edge list has size " + nEdges);
-		test.rsb.setStwList(test.reader.getWeightedEdges());
-		GlobalLog.log(Level.INFO, "Edge list has been passed to RankingSystemBuilder.");
+		test.rsb.setSourceTargetWeightList(test.reader.getWeightedEdges());
+		GlobalLog.log(Level.INFO, "Edge list has been passed to DirectedToNNDigraph.");
 		double start = (double) System.currentTimeMillis();
 		test.rsb.buildSparseDirectedGraph();
 		double duration = (double) (System.currentTimeMillis() - start) / 1000.0;

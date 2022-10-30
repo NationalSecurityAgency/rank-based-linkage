@@ -17,8 +17,11 @@ import logging.GlobalLog;
 
 /**
  * Reads triples of form (String, String, double), and places them in a list of
- * records of type {@link StringPairWithWeight}.<p>
- * Tested 10.19.2022
+ * records of type {@link StringPairWithWeight}.
+ * <p>
+ * The triples can represent either a directed or undirected weighted graph.
+ * There is no restriction of the number of targets associated with each source.
+ * The K-NN extraction occurs later. Tested 10.19.2022
  * 
  * @author <a href="https://github.com/probabilist-us">R. W. R. Darling</a>
  *
