@@ -9,22 +9,20 @@ import java.util.logging.Level;
 import logging.GlobalLog;
 import orientationStructures.DirectedToNNDigraph;
 import readWrite.StringPairCSVReader;
-import readWrite.StringPairWithWeight;
-import readWriteTests.TestStringPairCSVReader;
 
 /**
  * @author <a href="https://github.com/probabilist-us">R. W. R. Darling</a>
  *
  */
-public class TestRankingSystemBuilder {
+public class DirectedToNNDigraphTest {
 	DirectedToNNDigraph rsb;
 	StringPairCSVReader reader;
 
 	/**
 	 * 
 	 */
-	public TestRankingSystemBuilder() {
-		GlobalLog.log(Level.INFO, "Instance of " + TestRankingSystemBuilder.class.getName());
+	public DirectedToNNDigraphTest() {
+		GlobalLog.log(Level.INFO, "Instance of " + DirectedToNNDigraphTest.class.getName());
 		this.reader = new StringPairCSVReader();
 		this.rsb = new DirectedToNNDigraph();
 	}
@@ -34,7 +32,7 @@ public class TestRankingSystemBuilder {
 	 */
 	public static void main(String[] args) {
 		String fileName = args[0];
-		TestRankingSystemBuilder test = new TestRankingSystemBuilder();
+		DirectedToNNDigraphTest test = new DirectedToNNDigraphTest();
 		test.reader.readStringPairsWithWeights(fileName);
 		int nEdges = test.reader.getWeightedEdges().size();
 		GlobalLog.log(Level.INFO, "Edge list has size " + nEdges);
@@ -52,6 +50,10 @@ public class TestRankingSystemBuilder {
 		String image = test.rsb.getSourceStrings().get(index);
 		GlobalLog.log(Level.INFO, "Random source vertex: index = " + index + "; string = " + image);
 		GlobalLog.log(Level.INFO, "Reverse lookup for image: " + test.rsb.getVertexIndex().get(image));
+		/*
+		 * Two core
+		 */
+		test.rsb.extractTwoCore();
 	}
 
 }

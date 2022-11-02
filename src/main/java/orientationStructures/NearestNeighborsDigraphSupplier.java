@@ -22,9 +22,11 @@ public interface NearestNeighborsDigraphSupplier {
 
 	public void extractTwoCore();
 
-	public void buildObjectIndex();
+	public void buildObjectIndex();// can we implement it here?
 
 	public void buildSparseDirectedGraph();
+	
+	public void trimToKNearNbrDigraph(int k);
 
 	public Map<String, Integer> getVertexIndex();
 

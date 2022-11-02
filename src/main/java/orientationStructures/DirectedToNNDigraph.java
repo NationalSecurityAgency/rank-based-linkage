@@ -3,6 +3,7 @@
  */
 package orientationStructures;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
@@ -13,6 +14,7 @@ import java.util.stream.IntStream;
 import org.jgrapht.alg.util.Triple;
 import org.jgrapht.opt.graph.sparse.SparseIntDirectedWeightedGraph;
 
+import algorithms.TwoCore;
 import logging.GlobalLog;
 import readWrite.StringPairWithWeight;
 
@@ -86,13 +88,30 @@ public class DirectedToNNDigraph implements NearestNeighborsDigraphSupplier {
 	 */
 	public void buildSparseDirectedGraph() {
 		this.buildObjectIndex();
-		GlobalLog.log(Level.INFO, "Edge list built, with " + nV + " entries.");
 		this.digraph = new SparseIntDirectedWeightedGraph(this.nV, this.buildEdgeList());
-		GlobalLog.log(Level.INFO, "Directed graph built, with " + this.digraph.edgeSet().size() + " edges");
+		int nE = this.digraph.edgeSet().size();
+		GlobalLog.log(Level.INFO, "Directed graph built, with " + nE + " edges");
 	}
-	
+	@Override
 	public void extractTwoCore() {
-		//TODO
+		TwoCore<Integer, Integer> twoCore = new TwoCore<>(this.digraph);
+		GlobalLog.log(Level.INFO, "Computing the two core, without regard to edge direction.");
+		twoCore.computeTwoCore();
+		GlobalLog.log(Level.INFO, "Edges removed in each round of leaf removal: "
+				+ Arrays.toString(twoCore.getCountEdgesRemovedEachRound()));
+		/*
+		 * java.lang.UnsupportedOperationException: this graph is unmodifiable
+		 * Hence exclusion will have to occur at kNN cut down phase.
+		 */
+		this.digraph.removeAllEdges(twoCore.getAllNonCoreEdges());
+		this.digraph.removeAllVertices(twoCore.getNonCoreVertices());
+		GlobalLog.log(Level.INFO, "Two core contains " + this.digraph.edgeSet().size() + " edges, and "
+				+ this.digraph.vertexSet().size() + " vertices.");
+	}
+
+	@Override
+	public void trimToKNearNbrDigraph(int k) {
+
 	}
 
 	/**

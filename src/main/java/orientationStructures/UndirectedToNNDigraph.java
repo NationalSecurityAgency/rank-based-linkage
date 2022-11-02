@@ -54,6 +54,11 @@ public class UndirectedToNNDigraph implements NearestNeighborsDigraphSupplier {
 		// TODO Auto-generated method stub
 
 	}
+	
+	@Override
+	public void trimToKNearNbrDigraph(int k) {
+		
+	}
 
 	@Override
 	public Map<String, Integer> getVertexIndex() {

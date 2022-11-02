@@ -17,7 +17,10 @@ import org.jgrapht.graph.AbstractGraph;
 /**
  * Computes the vertices and edges in the two core of a graph, WITHOUT
  * constructing e new graph. Process: delete edges incident to degree one
- * vertices, and update vertex degrees.
+ * vertices, and update vertex degrees. Modified from trubbl-core project.
+ * <p>
+ * TODO: modify appropriately. Does it work for directed graphs, ignoring direction?
+ * 
  * 
  * * Example
  * <p>
@@ -41,7 +44,8 @@ public class TwoCore<V, E> {
 	Predicate<E> isOuterEdge; // means it has an end point of degree 1.
 	Set<V> twoCoreVertices;
 	Set<E> twoCoreEdges;
-	int[] edgesRemovedEachRound;
+	List<E> edgesOutsideTwoCore;
+	int[] countEdgesRemovedEachRound;
 
 	/**
 	 * @param myGraph - could have isolated vertices
@@ -63,6 +67,7 @@ public class TwoCore<V, E> {
 		 * Collections to be modified, while leaving graph unchanged.
 		 */
 		this.twoCoreEdges = this.graph.edgeSet().stream().collect(Collectors.toSet()); // fresh copy
+		this.edgesOutsideTwoCore = new ArrayList<>();
 	}
 
 	/**
@@ -74,6 +79,7 @@ public class TwoCore<V, E> {
 		 * Initialize set of edges NOT in 2-core.
 		 */
 		Set<E> outerEdges = this.twoCoreEdges.stream().filter(isOuterEdge).collect(Collectors.toSet());
+		this.edgesOutsideTwoCore.addAll(outerEdges);
 		V s, t;
 		int ds, dt;
 		List<Integer> countEdgesRemoved = new ArrayList<>();
@@ -103,8 +109,8 @@ public class TwoCore<V, E> {
 		/*
 		 * Record what happened.
 		 */
-		this.edgesRemovedEachRound = new int[countEdgesRemoved.size()];
-		Arrays.setAll(this.edgesRemovedEachRound, i -> countEdgesRemoved.get(i));
+		this.countEdgesRemovedEachRound = new int[countEdgesRemoved.size()];
+		Arrays.setAll(this.countEdgesRemovedEachRound, i -> countEdgesRemoved.get(i));
 	}
 
 	/**
@@ -112,6 +118,14 @@ public class TwoCore<V, E> {
 	 */
 	public Set<V> getTwoCoreVertices() {
 		return twoCoreVertices;
+	}
+	/**
+	 * 
+	 * @return vertices outside two core, i.e. those whose current degree is zero
+	 */
+	public Set<V> getNonCoreVertices() {
+		return this.graph.vertexSet().parallelStream().filter(v->(this.currentDegree.get(v).intValue()<1))
+				.collect(Collectors.toSet());
 	}
 
 	/**
@@ -125,8 +139,15 @@ public class TwoCore<V, E> {
 	 * @return the edges Removed Each Round, as an array indexed by the rounds
 	 * 
 	 */
-	public int[] getEdgesRemovedEachRound() {
-		return edgesRemovedEachRound;
+	public int[] getCountEdgesRemovedEachRound() {
+		return countEdgesRemovedEachRound;
+	}
+	/**
+	 * 
+	 * @return list of edges not in the the core
+	 */
+	public List<E> getAllNonCoreEdges() {
+		return this.edgesOutsideTwoCore;
 	}
 
 	/**
