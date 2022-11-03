@@ -20,7 +20,7 @@ import readWrite.StringPairWithWeight;
 public interface NearestNeighborsDigraphSupplier {
 	public void setSourceTargetWeightList(List<StringPairWithWeight> edgeRecords);
 
-	public void extractTwoCore();
+	public void determineTwoCore();
 
 	public void buildObjectIndex();// can we implement it here?
 

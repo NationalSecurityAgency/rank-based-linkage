@@ -3,6 +3,8 @@
  */
 package readWrite;
 
+import java.util.List;
+
 /**
  * Record class to represent a weighted directed edge.
  * <p>
@@ -28,6 +30,10 @@ public record StringPairWithWeight(String source, String target, double weight) 
 	@Override
 	public String toString() {
 		return source + " " + target + " " + Double.toString(weight);
+	}
+
+	public List<String> getSourceAndTarget() {
+		return List.of(source, target);
 	}
 
 }

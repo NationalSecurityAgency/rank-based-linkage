@@ -47,13 +47,13 @@ public class DirectedToNNDigraphTest {
 		 */
 		Random g = new Random();
 		int index = g.nextInt(test.rsb.getnV());
-		String image = test.rsb.getSourceStrings().get(index);
+		String image = test.rsb.getSourceTargetStrings().get(index);
 		GlobalLog.log(Level.INFO, "Random source vertex: index = " + index + "; string = " + image);
 		GlobalLog.log(Level.INFO, "Reverse lookup for image: " + test.rsb.getVertexIndex().get(image));
 		/*
 		 * Two core
 		 */
-		test.rsb.extractTwoCore();
+		test.rsb.determineTwoCore();
 	}
 
 }

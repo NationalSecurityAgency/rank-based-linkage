@@ -38,7 +38,7 @@ public class UndirectedToNNDigraph implements NearestNeighborsDigraphSupplier {
 	}
 
 	@Override
-	public void extractTwoCore() {
+	public void determineTwoCore() {
 		// TODO Auto-generated method stub
 
 	}

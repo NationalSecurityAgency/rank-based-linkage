@@ -6,6 +6,7 @@ package orientationStructures;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.logging.Level;
 import java.util.stream.Collectors;
@@ -27,7 +28,7 @@ import readWrite.StringPairWithWeight;
  * <p>
  * TODO
  * <p>
- * (1) 2-core extraction.
+ * (1) 2-core determination.
  * <p>
  * (2) deletion of all but K-NN
  * 
@@ -36,10 +37,12 @@ import readWrite.StringPairWithWeight;
  */
 public class DirectedToNNDigraph implements NearestNeighborsDigraphSupplier {
 
-	private List<String> sourceStrings; // list of distinct elements
-	private Map<String, Integer> vertexIndex; // maps string s to integer i if sourceStrings.get(i) = s
+	private List<String> sourceTargetStrings; // list of distinct Strings in Source or Target position
+	private Map<String, Integer> vertexIndex; // maps string s to integer i if sourceTargetStrings.get(i) = s
 	private List<StringPairWithWeight> stwList; // stw means "source, target, weight"
-	private int nV; // source vertex count
+	private List<Integer> nonCoreEdges;
+	private Set<Integer> nonCoreVertices;
+	private int nV, nE; // source vertex count, edge count
 	private SparseIntDirectedWeightedGraph digraph;
 
 	public DirectedToNNDigraph() {
@@ -57,15 +60,21 @@ public class DirectedToNNDigraph implements NearestNeighborsDigraphSupplier {
 	}
 
 	/**
+	 * Build an index for all the source and target strings, which refer to
+	 * vertices.
+	 * <p>
+	 * WARNING: Not enough to include sources only. Possibly some vertex has
+	 * out-degree zero, but positive in-degree.
+	 * <p>
 	 * Preparation for making a graph with vertices indexed by integers 0 to n
 	 * &minus 1
 	 */
 	public void buildObjectIndex() {
-		this.sourceStrings = this.stwList.stream().map(r -> r.source()).distinct()
+		this.sourceTargetStrings = this.stwList.stream().flatMap(r -> r.getSourceAndTarget().stream()).distinct()
 				.collect(Collectors.toUnmodifiableList());
-		this.nV = this.sourceStrings.size();
+		this.nV = this.sourceTargetStrings.size();
 		this.vertexIndex = IntStream.range(0, nV).boxed()
-				.collect(Collectors.toUnmodifiableMap(i -> this.sourceStrings.get(i), i -> i));
+				.collect(Collectors.toUnmodifiableMap(i -> this.sourceTargetStrings.get(i), i -> i));
 		GlobalLog.log(Level.INFO, "Vertex index built, with " + nV + " entries.");
 	}
 
@@ -89,24 +98,26 @@ public class DirectedToNNDigraph implements NearestNeighborsDigraphSupplier {
 	public void buildSparseDirectedGraph() {
 		this.buildObjectIndex();
 		this.digraph = new SparseIntDirectedWeightedGraph(this.nV, this.buildEdgeList());
-		int nE = this.digraph.edgeSet().size();
-		GlobalLog.log(Level.INFO, "Directed graph built, with " + nE + " edges");
+		this.nE = this.digraph.edgeSet().size();
+		GlobalLog.log(Level.INFO, "Directed graph built, with " + nE + " edges, and " + this.nV + " vertices.");
 	}
+
 	@Override
-	public void extractTwoCore() {
+	public void determineTwoCore() {
 		TwoCore<Integer, Integer> twoCore = new TwoCore<>(this.digraph);
 		GlobalLog.log(Level.INFO, "Computing the two core, without regard to edge direction.");
 		twoCore.computeTwoCore();
 		GlobalLog.log(Level.INFO, "Edges removed in each round of leaf removal: "
 				+ Arrays.toString(twoCore.getCountEdgesRemovedEachRound()));
+		this.nonCoreEdges = twoCore.getAllNonCoreEdges();
+		this.nonCoreVertices = twoCore.getNonCoreVertices();
 		/*
-		 * java.lang.UnsupportedOperationException: this graph is unmodifiable
-		 * Hence exclusion will have to occur at kNN cut down phase.
+		 * this.digraph is unmodifiable. Hence exclusion will have to occur at kNN cut
+		 * down phase.
 		 */
-		this.digraph.removeAllEdges(twoCore.getAllNonCoreEdges());
-		this.digraph.removeAllVertices(twoCore.getNonCoreVertices());
-		GlobalLog.log(Level.INFO, "Two core contains " + this.digraph.edgeSet().size() + " edges, and "
-				+ this.digraph.vertexSet().size() + " vertices.");
+		GlobalLog.log(Level.INFO, "OUSIDE the two-core, there are " + this.nonCoreEdges.size() + " edges, and "
+				+ this.nonCoreVertices.size() + " vertices.");
+
 	}
 
 	@Override
@@ -115,10 +126,10 @@ public class DirectedToNNDigraph implements NearestNeighborsDigraphSupplier {
 	}
 
 	/**
-	 * @return the sourceStrings as list of distinct objects
+	 * @return the sourceTargetStrings as list of distinct objects
 	 */
-	public List<String> getSourceStrings() {
-		return sourceStrings;
+	public List<String> getSourceTargetStrings() {
+		return sourceTargetStrings;
 	}
 
 	/**
