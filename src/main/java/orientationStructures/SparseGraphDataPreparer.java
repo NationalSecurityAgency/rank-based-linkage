@@ -16,7 +16,6 @@ import org.jgrapht.alg.util.Triple;
 import org.jgrapht.graph.AbstractGraph;
 
 import algorithms.TwoCore;
-import deprecated.OldDirectedToNNDigraph;
 import logging.GlobalLog;
 import readWrite.StringPairWithWeight;
 
@@ -108,7 +107,6 @@ public abstract class SparseGraphDataPreparer {
 		GlobalLog.log(Level.INFO, "OUSIDE the two-core, there are " + this.nonCoreEdges.size() + " edges, and "
 				+ this.nonCoreVertices.size() + " vertices.");
 	}
-	abstract List<Triple<Integer, Integer, Double>> buildKNearNbrEdgeList(int k);
 			
 	/**
 	 * @return the sourceTargetStrings as list of distinct objects

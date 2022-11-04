@@ -36,10 +36,11 @@ public class DirectedToNNDigraphTest {
 		test.reader.readStringPairsWithWeights(fileName);
 		int nEdges = test.reader.getWeightedEdges().size();
 		GlobalLog.log(Level.INFO, "Edge list has size " + nEdges);
-		test.rsb.setSourceTargetWeightList(test.reader.getWeightedEdges());
-		GlobalLog.log(Level.INFO, "Edge list has been passed to OldDirectedToNNDigraph.");
 		double start = (double) System.currentTimeMillis();
-		test.rsb.buildSparseDirectedGraph();
+		// test.rsb.setSourceTargetWeightList(test.reader.getWeightedEdges());
+		GlobalLog.log(Level.INFO, "Edge list has been passed to DirectedToNNDigraph.");
+		test.rsb.buildRawSparseGraph(test.reader.getWeightedEdges());
+		;
 		double duration = (double) (System.currentTimeMillis() - start) / 1000.0;
 		GlobalLog.log(Level.INFO, "Sparse directed graph built in " + duration + " seconds.");
 		/*
