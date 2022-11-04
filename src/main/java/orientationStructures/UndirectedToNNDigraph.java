@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 
+import org.jgrapht.alg.util.Triple;
 import org.jgrapht.opt.graph.sparse.SparseIntDirectedWeightedGraph;
 import org.jgrapht.opt.graph.sparse.SparseIntUndirectedWeightedGraph;
 
@@ -13,63 +14,61 @@ import readWrite.StringPairWithWeight;
 /**
  * Differs from the directed version in that we build an undirected graph first,
  * take its 2 -core, compute K-NN of each vertex, and write to a directed
- * gweighted graph.
+ * weighted graph.
  * 
  * @author <a href="https://github.com/probabilist-us">R. W. R. Darling</a>
  *
  */
-public class UndirectedToNNDigraph implements NearestNeighborsDigraphSupplier {
+public class UndirectedToNNDigraph extends SparseGraphDataPreparer implements NearestNeighborsDigraphSupplier {
 
-	private List<String> vertexStrings; // list of distinct elements
-	private Map<String, Integer> vertexIndex; // maps string s to integer i if sourceStrings.get(i) = s
-	private List<StringPairWithWeight> stwList; // stw means "source, target, weight"
-	private int nV; // source vertex count
 	private SparseIntUndirectedWeightedGraph graph;
-	private SparseIntDirectedWeightedGraph digraph; // for output
+	private SparseIntDirectedWeightedGraph knnDigraph; // for output
 
 	public UndirectedToNNDigraph() {
 		GlobalLog.log(Level.INFO, "Instance of " + UndirectedToNNDigraph.class.getName());
 	}
 
+	/**
+	 * Creates a sparse UNdirected graph.
+	 */
 	@Override
-	public void setSourceTargetWeightList(List<StringPairWithWeight> edgeRecords) {
-		// TODO Auto-generated method stub
-
+	public void buildRawSparseGraph(List<StringPairWithWeight> edgeRecords) {
+		super.setSourceTargetWeightList(edgeRecords);
+		super.buildObjectIndex();
+		this.graph = new SparseIntUndirectedWeightedGraph(super.nV, super.buildEdgeList());
+		GlobalLog.log(Level.INFO,
+				"Undirected graph built, with " + super.nE + " edges, and " + super.nV + " vertices.");
 	}
 
 	@Override
 	public void determineTwoCore() {
-		// TODO Auto-generated method stub
+		super.determineTwoCore(this.graph);
+	}
+
+	public List<Triple<Integer, Integer, Double>> buildKNearNbrEdgeList(int k) {
 
 	}
 
+	/**
+	 * For every vertex in the two core, the k OUTGOING two core edges of highest
+	 * weight will be placed in a list, from which a new sparse directed graph,
+	 * this.knnDigraph, is built. We cannot select some edges from this.graph, which
+	 * is immutable.
+	 */
 	@Override
-	public void buildObjectIndex() {
-		// TODO Auto-generated method stub
-
-	}
-
-	@Override
-	public void buildSparseDirectedGraph() {
-		// TODO Auto-generated method stub
-
-	}
-	
-	@Override
-	public void trimToKNearNbrDigraph(int k) {
-		
+	public void buildKNearNbrDigraph(int k) {
+		this.knnDigraph = new SparseIntDirectedWeightedGraph(super.nV, this.buildKNearNbrEdgeList(k));
 	}
 
 	@Override
 	public Map<String, Integer> getVertexIndex() {
 		// TODO Auto-generated method stub
-		return null;
+		return super.getVertexIndex();
 	}
 
 	@Override
-	public SparseIntDirectedWeightedGraph getDigraph() {
-		// TODO Auto-generated method stub
-		return null;
+	public SparseIntDirectedWeightedGraph getKNNDigraph() {
+		return this.knnDigraph;
 	}
 
 }

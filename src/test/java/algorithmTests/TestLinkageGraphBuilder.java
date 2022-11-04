@@ -41,7 +41,7 @@ public class TestLinkageGraphBuilder {
 		int nEdges = test.reader.getWeightedEdges().size();
 		GlobalLog.log(Level.INFO, "Edge list has size " + nEdges);
 		test.rsb.setSourceTargetWeightList(test.reader.getWeightedEdges());
-		GlobalLog.log(Level.INFO, "Edge list has been passed to DirectedToNNDigraph.");
+		GlobalLog.log(Level.INFO, "Edge list has been passed to OldDirectedToNNDigraph.");
 		double start = (double) System.currentTimeMillis();
 		test.rsb.buildSparseDirectedGraph();
 		double duration = (double) (System.currentTimeMillis() - start) / 1000.0;
@@ -49,7 +49,7 @@ public class TestLinkageGraphBuilder {
 		/*
 		 * Test of LinkageGraphBuilder starts here.
 		 */
-		test.lgb.setDigraph(test.rsb.getDigraph());
+		test.lgb.setDigraph(test.rsb.getKNNDigraph());
 		GlobalLog.log(Level.INFO, "Sparse directed graph passed to LinkageGraphBuilder.");
 		test.lgb.buildLinkageGraph();
 		DoubleSummaryStatistics inSwayStatistics = test.lgb.getLinkageGraph().edgeSet().stream()

@@ -24,12 +24,12 @@ public interface NearestNeighborsDigraphSupplier {
 
 	public void buildObjectIndex();// can we implement it here?
 
-	public void buildSparseDirectedGraph();
+	public void buildRawSparseGraph(List<StringPairWithWeight> edgeRecords);
 	
-	public void trimToKNearNbrDigraph(int k);
+	public void buildKNearNbrDigraph(int k);
 
 	public Map<String, Integer> getVertexIndex();
 
-	public SparseIntDirectedWeightedGraph getDigraph();
+	public SparseIntDirectedWeightedGraph getKNNDigraph();
 
 }

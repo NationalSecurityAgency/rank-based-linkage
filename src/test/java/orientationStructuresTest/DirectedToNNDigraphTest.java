@@ -37,7 +37,7 @@ public class DirectedToNNDigraphTest {
 		int nEdges = test.reader.getWeightedEdges().size();
 		GlobalLog.log(Level.INFO, "Edge list has size " + nEdges);
 		test.rsb.setSourceTargetWeightList(test.reader.getWeightedEdges());
-		GlobalLog.log(Level.INFO, "Edge list has been passed to DirectedToNNDigraph.");
+		GlobalLog.log(Level.INFO, "Edge list has been passed to OldDirectedToNNDigraph.");
 		double start = (double) System.currentTimeMillis();
 		test.rsb.buildSparseDirectedGraph();
 		double duration = (double) (System.currentTimeMillis() - start) / 1000.0;
