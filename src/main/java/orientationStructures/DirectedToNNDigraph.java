@@ -4,11 +4,9 @@
 package orientationStructures;
 
 import java.util.Comparator;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.NavigableSet;
-import java.util.Set;
 import java.util.TreeSet;
 import java.util.logging.Level;
 import java.util.stream.Stream;
@@ -23,7 +21,7 @@ import readWrite.StringPairWithWeight;
  * Takes a List of {@link readWrite.StringPairWithWeight} records, indexes the
  * source and target objects by integers 0 to n &minus; 1, and builds a
  * {@link org.jgrapht.opt.graph.sparse.SparseIntDirectedWeightedGraph} object.
-* After extracting the two core, build K-NN digraph.
+ * After extracting the two core, build K-NN digraph.
  * 
  * @author <a href="https://github.com/probabilist-us">R. W. R. Darling</a>
  *
@@ -32,7 +30,6 @@ public class DirectedToNNDigraph extends SparseGraphDataPreparer implements Near
 
 	private SparseIntDirectedWeightedGraph digraph, knnDigraph;
 	private NavigableSet<Integer> runningK; // re-usable container for all outgoing edges of a vertex
-	private Set<Integer> outGoingEdgeSet;// re-usable container for k outgoing edges of highest weight
 	/**
 	 * Comparator ranks edge e before edge f if weight(f) &lt; weight(e).
 	 */
@@ -40,7 +37,6 @@ public class DirectedToNNDigraph extends SparseGraphDataPreparer implements Near
 
 	public DirectedToNNDigraph() {
 		GlobalLog.log(Level.INFO, "Instance of " + DirectedToNNDigraph.class.getName());
-		this.outGoingEdgeSet = new HashSet<>();
 	}
 
 	/**
@@ -80,26 +76,29 @@ public class DirectedToNNDigraph extends SparseGraphDataPreparer implements Near
 	 */
 	public Stream<Triple<Integer, Integer, Double>> kNearNbrOfVertex(Integer v, int k) {
 		this.runningK.clear();
-		this.outGoingEdgeSet = this.digraph.outgoingEdgesOf(v);
-		Iterator<Integer> edgeIterator = runningK.iterator();
+		Iterator<Integer> edgeIterator = this.digraph.outgoingEdgesOf(v).iterator();
 		int counter = 0;
 		/*
 		 * Maybe vertex v has no more than k outgoing edges. Insert them in sorted
-		 * order, highest weight first.
+		 * order, highest weight first, but exclude edges outside the two core.
 		 */
+		Integer f;
 		while (counter < k && edgeIterator.hasNext()) {
-			runningK.add(edgeIterator.next());
-			counter++;
+			f = edgeIterator.next();
+			if (!super.nonCoreEdges.contains(f)) {
+				runningK.add(f);
+				counter++;
+			}
 		}
 		/*
 		 * If there are more than k outgoing edges, iterate through remaining outgoing
 		 * edges from v, inserting them if weight exceeds lowest weight among the k
-		 * running best.
+		 * running best, but excluding edges outside the two core.
 		 */
-		Integer f;
+
 		while (edgeIterator.hasNext()) {
 			f = edgeIterator.next();
-			if (this.higherWeightPreferred.compare(f, runningK.last()) < 0) {
+			if (this.higherWeightPreferred.compare(f, runningK.last()) < 0 && !super.nonCoreEdges.contains(f)) {
 				runningK.remove(runningK.last());
 				runningK.add(f);
 			}
@@ -116,20 +115,25 @@ public class DirectedToNNDigraph extends SparseGraphDataPreparer implements Near
 	 * weight will be placed in a list, from which a new sparse directed graph,
 	 * this.knnDigraph, is built. We cannot delete some edges from this.digraph,
 	 * which is immutable.
-	 * <p>
-	 * TODO exclude non-two core vertices
 	 */
 	@Override
 	public void buildKNearNbrDigraph(int k) {
 		GlobalLog.log(Level.INFO, "Building K-NN digraph for use by rank-based linkage.");
-		this.knnDigraph = new SparseIntDirectedWeightedGraph(super.nV,
-				this.digraph.vertexSet().parallelStream().flatMap(v -> kNearNbrOfVertex(v, k)).toList());
+		this.knnDigraph = new SparseIntDirectedWeightedGraph(super.nV, this.digraph.vertexSet().parallelStream()
+				.filter(v -> !super.nonCoreVertices.contains(v)).flatMap(v -> kNearNbrOfVertex(v, k)).toList());
 	}
 
 	/**
 	 * @return the digraph
 	 */
 	public SparseIntDirectedWeightedGraph getKNNDigraph() {
+		return this.knnDigraph;
+	}
+
+	/**
+	 * @return the digraph
+	 */
+	public SparseIntDirectedWeightedGraph getDigraph() {
 		return digraph;
 	}
 

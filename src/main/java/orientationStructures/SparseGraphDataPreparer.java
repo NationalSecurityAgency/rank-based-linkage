@@ -4,6 +4,7 @@
 package orientationStructures;
 
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -33,8 +34,8 @@ public abstract class SparseGraphDataPreparer {
 	private Map<String, Integer> vertexIndex; // maps string s to integer i if sourceTargetStrings.get(i) = s
 	private List<StringPairWithWeight> stwList; // stw means "source, target, weight"
 	public int nV, nE; // source vertex count, edge count
-	private List<Integer> nonCoreEdges;
-	private Set<Integer> nonCoreVertices;
+	protected Set<Integer> nonCoreEdges;
+	protected Set<Integer> nonCoreVertices;
 
 	/**
 	 * 
@@ -102,12 +103,12 @@ public abstract class SparseGraphDataPreparer {
 		twoCore.computeTwoCore();
 		GlobalLog.log(Level.INFO, "Edges removed in each round of leaf removal: "
 				+ Arrays.toString(twoCore.getCountEdgesRemovedEachRound()));
-		this.nonCoreEdges = twoCore.getAllNonCoreEdges();
+		this.nonCoreEdges = new HashSet<>(twoCore.getAllNonCoreEdges());
 		this.nonCoreVertices = twoCore.getNonCoreVertices();
 		GlobalLog.log(Level.INFO, "OUSIDE the two-core, there are " + this.nonCoreEdges.size() + " edges, and "
 				+ this.nonCoreVertices.size() + " vertices.");
 	}
-			
+
 	/**
 	 * @return the sourceTargetStrings as list of distinct objects
 	 */
