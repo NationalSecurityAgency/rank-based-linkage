@@ -34,8 +34,8 @@ public abstract class SparseGraphDataPreparer {
 	private Map<String, Integer> vertexIndex; // maps string s to integer i if sourceTargetStrings.get(i) = s
 	private List<StringPairWithWeight> stwList; // stw means "source, target, weight"
 	public int nV, nE; // source vertex count, edge count
-	protected Set<Integer> nonCoreEdges;
-	protected Set<Integer> nonCoreVertices;
+	public Set<Integer> nonCoreEdges;//Visibility issue? Use getter?
+	public Set<Integer> nonCoreVertices;
 
 	/**
 	 * 

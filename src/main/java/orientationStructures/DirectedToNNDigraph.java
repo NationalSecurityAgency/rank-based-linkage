@@ -68,46 +68,53 @@ public class DirectedToNNDigraph extends SparseGraphDataPreparer implements Near
 	 * are returned. These streams are flattened, over all source vertices, in the
 	 * {@link buildKNearNbrDigraph} method.
 	 * <p>
-	 * TODO exclude non-two core edges
+	 * Excludes non-two core edges.
+	 * <p>
+	 * TODO Fix visibility issue with super.nonCoreVertices.
 	 * 
 	 * @param v source vertex
 	 * @param k number to be returned
-	 * @return k outgoing edges from source v with largest weight.
+	 * @return k outgoing two core edges from source v with largest weight., or
+	 *         empty stream if v is not in the two core.
 	 */
 	public Stream<Triple<Integer, Integer, Double>> kNearNbrOfVertex(Integer v, int k) {
-		this.runningK.clear();
-		Iterator<Integer> edgeIterator = this.digraph.outgoingEdgesOf(v).iterator();
-		int counter = 0;
-		/*
-		 * Maybe vertex v has no more than k outgoing edges. Insert them in sorted
-		 * order, highest weight first, but exclude edges outside the two core.
-		 */
-		Integer f;
-		while (counter < k && edgeIterator.hasNext()) {
-			f = edgeIterator.next();
-			if (!super.nonCoreEdges.contains(f)) {
-				runningK.add(f);
-				counter++;
+		if (super.nonCoreVertices.contains(v)) {
+			return Stream.empty();
+		} else {
+			this.runningK.clear();
+			Iterator<Integer> edgeIterator = this.digraph.outgoingEdgesOf(v).iterator();
+			int counter = 0;
+			/*
+			 * Maybe vertex v has no more than k outgoing edges. Insert them in sorted
+			 * order, highest weight first, but exclude edges outside the two core.
+			 */
+			Integer f;
+			while (counter < k && edgeIterator.hasNext()) {
+				f = edgeIterator.next();
+				if (!super.nonCoreEdges.contains(f)) {
+					runningK.add(f);
+					counter++;
+				}
 			}
-		}
-		/*
-		 * If there are more than k outgoing edges, iterate through remaining outgoing
-		 * edges from v, inserting them if weight exceeds lowest weight among the k
-		 * running best, but excluding edges outside the two core.
-		 */
+			/*
+			 * If there are more than k outgoing edges, iterate through remaining outgoing
+			 * edges from v, inserting them if weight exceeds lowest weight among the k
+			 * running best, but excluding edges outside the two core.
+			 */
 
-		while (edgeIterator.hasNext()) {
-			f = edgeIterator.next();
-			if (this.higherWeightPreferred.compare(f, runningK.last()) < 0 && !super.nonCoreEdges.contains(f)) {
-				runningK.remove(runningK.last());
-				runningK.add(f);
+			while (edgeIterator.hasNext()) {
+				f = edgeIterator.next();
+				if (this.higherWeightPreferred.compare(f, runningK.last()) < 0 && !super.nonCoreEdges.contains(f)) {
+					runningK.remove(runningK.last());
+					runningK.add(f);
+				}
 			}
+			/*
+			 * Convert edge indices into stream of source, target, weight triples.
+			 */
+			return runningK.stream().map(e -> new Triple<Integer, Integer, Double>(this.digraph.getEdgeSource(e),
+					this.digraph.getEdgeTarget(e), this.digraph.getEdgeWeight(e)));
 		}
-		/*
-		 * Convert edge indices into stream of source, target, weight triples.
-		 */
-		return runningK.stream().map(e -> new Triple<Integer, Integer, Double>(this.digraph.getEdgeSource(e),
-				this.digraph.getEdgeTarget(e), this.digraph.getEdgeWeight(e)));
 	}
 
 	/**
@@ -119,8 +126,8 @@ public class DirectedToNNDigraph extends SparseGraphDataPreparer implements Near
 	@Override
 	public void buildKNearNbrDigraph(int k) {
 		GlobalLog.log(Level.INFO, "Building K-NN digraph for use by rank-based linkage.");
-		this.knnDigraph = new SparseIntDirectedWeightedGraph(super.nV, this.digraph.vertexSet().parallelStream()
-				.filter(v -> !super.nonCoreVertices.contains(v)).flatMap(v -> kNearNbrOfVertex(v, k)).toList());
+		this.knnDigraph = new SparseIntDirectedWeightedGraph(super.nV,
+				this.digraph.vertexSet().parallelStream().flatMap(v -> kNearNbrOfVertex(v, k)).toList());
 	}
 
 	/**

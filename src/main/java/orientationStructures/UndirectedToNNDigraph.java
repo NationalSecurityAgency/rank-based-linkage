@@ -46,7 +46,7 @@ public class UndirectedToNNDigraph extends SparseGraphDataPreparer implements Ne
 	}
 
 	public List<Triple<Integer, Integer, Double>> buildKNearNbrEdgeList(int k) {
-
+		return null;//TODO
 	}
 
 	/**

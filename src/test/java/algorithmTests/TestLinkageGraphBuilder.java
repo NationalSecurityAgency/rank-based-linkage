@@ -16,7 +16,7 @@ import readWrite.StringPairCSVReader;
  *
  */
 public class TestLinkageGraphBuilder {
-	DirectedToNNDigraph rsb;
+	DirectedToNNDigraph d2nndg;
 	StringPairCSVReader reader;
 	LinkageGraphBuilder lgb;
 	final boolean higherWeightMoreSimilar = true;
@@ -27,7 +27,7 @@ public class TestLinkageGraphBuilder {
 	public TestLinkageGraphBuilder() {
 		GlobalLog.log(Level.INFO, "Instance of " + TestLinkageGraphBuilder.class.getName());
 		this.reader = new StringPairCSVReader();
-		this.rsb = new DirectedToNNDigraph();
+		this.d2nndg = new DirectedToNNDigraph();
 		this.lgb = new LinkageGraphBuilder(higherWeightMoreSimilar);
 	}
 
@@ -36,20 +36,25 @@ public class TestLinkageGraphBuilder {
 	 */
 	public static void main(String[] args) {
 		String fileName = args[0];
+		int k = Integer.parseInt(args[1]); //# neighbors
 		TestLinkageGraphBuilder test = new TestLinkageGraphBuilder();
 		test.reader.readStringPairsWithWeights(fileName);
 		int nEdges = test.reader.getWeightedEdges().size();
 		GlobalLog.log(Level.INFO, "Edge list has size " + nEdges);
-		test.rsb.setSourceTargetWeightList(test.reader.getWeightedEdges());
+		//test.d2nndg.setSourceTargetWeightList(test.reader.getWeightedEdges());
 		GlobalLog.log(Level.INFO, "Edge list has been passed to OldDirectedToNNDigraph.");
 		double start = (double) System.currentTimeMillis();
-		test.rsb.buildSparseDirectedGraph();
+		test.d2nndg.buildRawSparseGraph(test.reader.getWeightedEdges());
 		double duration = (double) (System.currentTimeMillis() - start) / 1000.0;
 		GlobalLog.log(Level.INFO, "Sparse directed graph built in " + duration + " seconds.");
+		start = (double) System.currentTimeMillis();
+		test.d2nndg.buildKNearNbrDigraph(k);
+		duration = (double) (System.currentTimeMillis() - start) / 1000.0;
+		GlobalLog.log(Level.INFO, "K-NN digraph built in " + duration + " seconds.");
 		/*
 		 * Test of LinkageGraphBuilder starts here.
 		 */
-		test.lgb.setDigraph(test.rsb.getKNNDigraph());
+		test.lgb.setDigraph(test.d2nndg.getKNNDigraph());
 		GlobalLog.log(Level.INFO, "Sparse directed graph passed to LinkageGraphBuilder.");
 		test.lgb.buildLinkageGraph();
 		DoubleSummaryStatistics inSwayStatistics = test.lgb.getLinkageGraph().edgeSet().stream()
