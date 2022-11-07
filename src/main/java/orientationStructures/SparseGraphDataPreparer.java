@@ -4,10 +4,8 @@
 package orientationStructures;
 
 import java.util.Arrays;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.function.Function;
 import java.util.logging.Level;
 import java.util.stream.Collectors;
@@ -16,7 +14,7 @@ import java.util.stream.IntStream;
 import org.jgrapht.alg.util.Triple;
 import org.jgrapht.graph.AbstractGraph;
 
-import algorithms.TwoCore;
+import algorithms.TwoCoreIntBased;
 import logging.GlobalLog;
 import readWrite.StringPairWithWeight;
 
@@ -33,9 +31,8 @@ public abstract class SparseGraphDataPreparer {
 	private List<String> sourceTargetStrings; // list of distinct Strings in Source or Target position
 	private Map<String, Integer> vertexIndex; // maps string s to integer i if sourceTargetStrings.get(i) = s
 	private List<StringPairWithWeight> stwList; // stw means "source, target, weight"
-	public int nV, nE; // source vertex count, edge count
-	public Set<Integer> nonCoreEdges;//Visibility issue? Use getter?
-	public Set<Integer> nonCoreVertices;
+	public int nV, nE; //One more than highest numbered vertex (resp. edge)
+	boolean[] vertexIsInTwoCore, edgeIsInTwoCore;
 
 	/**
 	 * 
@@ -98,15 +95,17 @@ public abstract class SparseGraphDataPreparer {
 	 *                      SparseIntUndirectedWeightedGraph in an extending class.
 	 */
 	public void determineTwoCore(AbstractGraph<Integer, Integer> abstractGraph) {
-		TwoCore<Integer, Integer> twoCore = new TwoCore<>(abstractGraph);
+		TwoCoreIntBased twoCore = new TwoCoreIntBased(abstractGraph);
 		GlobalLog.log(Level.INFO, "Computing the two core, without regard to edge direction.");
 		twoCore.computeTwoCore();
 		GlobalLog.log(Level.INFO, "Edges removed in each round of leaf removal: "
 				+ Arrays.toString(twoCore.getCountEdgesRemovedEachRound()));
-		this.nonCoreEdges = new HashSet<>(twoCore.getAllNonCoreEdges());
-		this.nonCoreVertices = twoCore.getNonCoreVertices();
-		GlobalLog.log(Level.INFO, "OUSIDE the two-core, there are " + this.nonCoreEdges.size() + " edges, and "
-				+ this.nonCoreVertices.size() + " vertices.");
+		this.vertexIsInTwoCore = twoCore.getVertexIsInTwoCore();
+		GlobalLog.log(Level.INFO, "Boolean array vertexIsInTwoCore has length " + this.vertexIsInTwoCore.length);
+		this.edgeIsInTwoCore = twoCore.getEdgeIsInTwoCore();
+		GlobalLog.log(Level.INFO, "Boolean array edgeIsInTwoCore has length " + this.edgeIsInTwoCore.length);
+		GlobalLog.log(Level.INFO, "In the two-core, there are " + twoCore.getTwoCoreEdges().size() + " edges, and "
+				+ twoCore.getTwoCoreVertices().size() + " vertices.");
 	}
 
 	/**

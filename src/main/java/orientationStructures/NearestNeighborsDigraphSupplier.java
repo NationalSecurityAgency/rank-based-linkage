@@ -20,11 +20,11 @@ import readWrite.StringPairWithWeight;
 public interface NearestNeighborsDigraphSupplier {
 	public void setSourceTargetWeightList(List<StringPairWithWeight> edgeRecords);
 
-	public void determineTwoCore();
-
 	public void buildObjectIndex();// can we implement it here?
 
 	public void buildRawSparseGraph(List<StringPairWithWeight> edgeRecords);
+	
+	public void determineTwoCore();
 	
 	public void buildKNearNbrDigraph(int k);
 

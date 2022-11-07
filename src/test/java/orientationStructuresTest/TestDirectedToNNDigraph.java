@@ -40,11 +40,12 @@ public class TestDirectedToNNDigraph {
 		test.reader.readStringPairsWithWeights(fileName);
 		int nEdges = test.reader.getWeightedEdges().size();
 		GlobalLog.log(Level.INFO, "Edge list has size " + nEdges);
+		/*
+		 * (1) Build raw sparse directed weigted graph
+		 */
 		double start = (double) System.currentTimeMillis();
-		// test.rsb.setSourceTargetWeightList(test.reader.getWeightedEdges());
 		GlobalLog.log(Level.INFO, "Edge list has been passed to DirectedToNNDigraph.");
 		test.d2nndg.buildRawSparseGraph(test.reader.getWeightedEdges());
-		;
 		double duration = (double) (System.currentTimeMillis() - start) / 1000.0;
 		GlobalLog.log(Level.INFO, "Sparse directed graph built in " + duration + " seconds.");
 		/*
@@ -55,24 +56,29 @@ public class TestDirectedToNNDigraph {
 		String image = test.d2nndg.getSourceTargetStrings().get(index);
 		GlobalLog.log(Level.INFO, "Random source vertex: index = " + index + "; string = " + image);
 		GlobalLog.log(Level.INFO, "Reverse lookup for image: " + test.d2nndg.getVertexIndex().get(image));
+		/**
+		 * (2) Determine two core. Needed to exclude non-two core vertices and edges
+		 * from K-NN digraph
+		 */
+		test.d2nndg.determineTwoCore();
 		/*
-		 * Two core and K-NN digraph. WARNING! Must test kNearNbrOfVertex() method first. FAILED
+		 * Inspect kNearNbrOfVertex() method, which will be used for K-NN digraph.
 		 */
 		List<Triple<Integer, Integer, Double>> nbrTest = test.d2nndg.kNearNbrOfVertex(index, k).toList();
 		int index0 = nbrTest.get(0).getSecond();
 		String image0 = test.d2nndg.getSourceTargetStrings().get(index0);
 		double weight = nbrTest.get(0).getThird();
-		GlobalLog.log(Level.INFO,"Source: " + image + " Target: " + image0 + " Weight: " + weight);
-		
-		
+		GlobalLog.log(Level.INFO, "Source: " + image + " Target: " + image0 + " Weight: " + weight);
 		/*
-		 * start = (double) System.currentTimeMillis();
-		 * test.d2nndg.buildKNearNbrDigraph(k); duration = (double)
-		 * (System.currentTimeMillis() - start) / 1000.0; GlobalLog.log(Level.INFO,
-		 * "K-NN digraph built in " + duration + " seconds."); int nEKNN =
-		 * test.d2nndg.getKNNDigraph().edgeSet().size(); GlobalLog.log(Level.INFO,
-		 * "K-NN digraph has " + nEKNN + " edges.");
+		 * (3) Build K-NN digraph
 		 */
+		start = (double) System.currentTimeMillis();
+		test.d2nndg.buildKNearNbrDigraph(k);
+		duration = (double) (System.currentTimeMillis() - start) / 1000.0;
+		GlobalLog.log(Level.INFO, " For K = " + k + ", K-NN digraph built in " + duration + " seconds.");
+		int nEKNN = test.d2nndg.getKNNDigraph().edgeSet().size();
+		GlobalLog.log(Level.INFO, "K-NN digraph has " + nEKNN + " edges.");
+
 	}
 
 }

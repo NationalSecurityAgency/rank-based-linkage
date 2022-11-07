@@ -32,6 +32,7 @@ public class TestLinkageGraphBuilder {
 	}
 
 	/**
+	 * Insert missing pieces!
 	 * @param args
 	 */
 	public static void main(String[] args) {
@@ -41,16 +42,23 @@ public class TestLinkageGraphBuilder {
 		test.reader.readStringPairsWithWeights(fileName);
 		int nEdges = test.reader.getWeightedEdges().size();
 		GlobalLog.log(Level.INFO, "Edge list has size " + nEdges);
-		//test.d2nndg.setSourceTargetWeightList(test.reader.getWeightedEdges());
-		GlobalLog.log(Level.INFO, "Edge list has been passed to OldDirectedToNNDigraph.");
+		/**
+		 * (1) raw digraph
+		 */
+		GlobalLog.log(Level.INFO, "Edge list has been passed to DirectedToNNDigraph.");
 		double start = (double) System.currentTimeMillis();
 		test.d2nndg.buildRawSparseGraph(test.reader.getWeightedEdges());
 		double duration = (double) (System.currentTimeMillis() - start) / 1000.0;
 		GlobalLog.log(Level.INFO, "Sparse directed graph built in " + duration + " seconds.");
+		/**
+		 * (2) Determine two core. Needed to exclude non-two core vertices and edges
+		 * from K-NN digraph
+		 */
 		start = (double) System.currentTimeMillis();
+		test.d2nndg.determineTwoCore();
 		test.d2nndg.buildKNearNbrDigraph(k);
 		duration = (double) (System.currentTimeMillis() - start) / 1000.0;
-		GlobalLog.log(Level.INFO, "K-NN digraph built in " + duration + " seconds.");
+		GlobalLog.log(Level.INFO, "K-NN digraph of two core built in " + duration + " seconds.");
 		/*
 		 * Test of LinkageGraphBuilder starts here.
 		 */

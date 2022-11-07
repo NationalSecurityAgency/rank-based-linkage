@@ -3,49 +3,39 @@
  */
 package algorithmTests;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Random;
 
-import org.jgrapht.graph.DefaultEdge;
-import org.jgrapht.graph.SimpleGraph;
+import org.jgrapht.Graphs;
+import org.jgrapht.alg.util.Pair;
+import org.jgrapht.opt.graph.sparse.SparseIntUndirectedGraph;
 
-import algorithms.TwoCore;
+import algorithms.TwoCoreIntBased;
 
 /**
- * Test the {@link utilities.TwoCore} class.
+ * Test the {@link utilities.TwoCoreIntBased} class on a
+ * SparseIntUndirectedGraph. Passed 11.7.2022.
  * 
  * @author <a href="https://github.com/probabilist-us">R. W. R. Darling</a>
  *
  */
 public class TwoCoreTest {
 
-	SimpleGraph<String, DefaultEdge> graph;
-	TwoCore<String, DefaultEdge> tc;
+	SparseIntUndirectedGraph graph;
+	TwoCoreIntBased tc;
+	Random g;
 
-	public TwoCoreTest(SimpleGraph<String, DefaultEdge> myGraph) {
-		this.graph = myGraph;
-		this.tc = new TwoCore<>(this.graph);
+	public TwoCoreTest(int n, int m) {
+		g = new Random();
+		this.graph = new SparseIntUndirectedGraph(n, this.edgeList(n, m));
+		this.tc = new TwoCoreIntBased(this.graph);
 		this.tc.computeTwoCore();
 
 	}
 
-	/**
-	 * A random graph one eleven vertices is created. Edge list is inspected. Check
-	 * whether two core is computed correctly by {@link utilities.TwoCore} class.
-	 * 
-	 * @param args none
-	 */
-	public static void main(String[] args) {
-		/*
-		 * Random graph on n vertices, m edges
-		 */
-		SimpleGraph<String, DefaultEdge> graph = new SimpleGraph<String, DefaultEdge>(DefaultEdge.class);
-		String[] vertices = new String[] { "a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k" };
-		for (String s : vertices) {
-			graph.addVertex(s);
-		}
-		int n = vertices.length;
-		int m = n - 1;
-		Random g = new Random();
+	List<Pair<Integer, Integer>> edgeList(int n, int m) {
+		List<Pair<Integer, Integer>> randomPairs = new ArrayList<>();
 		int s, t;
 		for (int j = 0; j < m; j++) {
 			s = g.nextInt(n);
@@ -53,28 +43,50 @@ public class TwoCoreTest {
 			if (t >= s) {
 				t++;
 			}
-			graph.addEdge(vertices[s], vertices[t]);
+			randomPairs.add(new Pair<Integer, Integer>(Integer.valueOf(s), Integer.valueOf(t)));
 		}
-		System.out.println("Edge list of random graph:");
-		for (DefaultEdge e : graph.edgeSet()) {
-			System.out.print("{" + graph.getEdgeSource(e) + ", " + graph.getEdgeTarget(e) + "}, ");
+		return randomPairs;
+	}
+
+	/**
+	 * A random graph one eleven vertices is created. Edge list is inspected. Check
+	 * whether two core is computed correctly by {@link utilities.TwoCoreIntBased}
+	 * class.
+	 * 
+	 * @param args none
+	 */
+	public static void main(String[] args) {
+		int n = 200;
+		int m = 201;
+		System.out.println();
+		TwoCoreTest test = new TwoCoreTest(n, m);
+		test.reportGraph();
+		test.reportCore();
+	}
+
+	public void reportGraph() {
+		for (Integer v : this.graph.vertexSet()) {
+			System.out.print("Neighbors of vertex " + v + ": ");
+			for (Integer u : Graphs.neighborListOf(this.graph, v)) {
+				System.out.print(u + ", ");
+			}
+			System.out.println();
 		}
 		System.out.println();
-		TwoCoreTest test = new TwoCoreTest(graph);
-		test.report();
 	}
-/**
- * Report results of experiment to console.
- */
-	public void report() {
+
+	/**
+	 * Report results of experiment to console.
+	 */
+	public void reportCore() {
 		System.out.println("Two-core vertices:");
-		for (String v : this.tc.getTwoCoreVertices()) {
+		for (Integer v : this.tc.getTwoCoreVertices()) {
 			System.out.print(v + ", ");
 		}
 		System.out.println();
 		System.out.println("Two-core edges:");
-		for (DefaultEdge e : this.tc.getTwoCoreEdges()) {
-			System.out.print("{" + this.graph.getEdgeSource(e) + ", " + this.graph.getEdgeTarget(e) + "}, ");
+		for (Integer e : this.tc.getTwoCoreEdges()) {
+			System.out.println("{" + this.graph.getEdgeSource(e) + ", " + this.graph.getEdgeTarget(e) + "}, ");
 		}
 		System.out.println();
 		System.out.println("Numbers of edges removed per round:");

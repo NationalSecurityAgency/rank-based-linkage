@@ -29,7 +29,11 @@ import readWrite.StringPairWithWeight;
 public class DirectedToNNDigraph extends SparseGraphDataPreparer implements NearestNeighborsDigraphSupplier {
 
 	private SparseIntDirectedWeightedGraph digraph, knnDigraph;
-	private NavigableSet<Integer> runningK; // re-usable container for all outgoing edges of a vertex
+	/*
+	 * Re-usable container for all outgoing edges of a vertex: Maybe bad idea
+	 * because of concurrent modification errors.
+	 */
+	// private NavigableSet<Integer> runningK;
 	/**
 	 * Comparator ranks edge e before edge f if weight(f) &lt; weight(e).
 	 */
@@ -53,7 +57,7 @@ public class DirectedToNNDigraph extends SparseGraphDataPreparer implements Near
 		 */
 		this.higherWeightPreferred = (e, f) -> Double.compare(this.digraph.getEdgeWeight(f),
 				this.digraph.getEdgeWeight(e));
-		this.runningK = new TreeSet<Integer>(this.higherWeightPreferred);
+		// this.runningK = new TreeSet<Integer>(this.higherWeightPreferred);
 	}
 
 	@Override
@@ -70,18 +74,18 @@ public class DirectedToNNDigraph extends SparseGraphDataPreparer implements Near
 	 * <p>
 	 * Excludes non-two core edges.
 	 * <p>
-	 * TODO Fix visibility issue with super.nonCoreVertices.
+	 * ERRORS intermittently on calling this. Maybe stream is bad.
 	 * 
 	 * @param v source vertex
 	 * @param k number to be returned
 	 * @return k outgoing two core edges from source v with largest weight., or
 	 *         empty stream if v is not in the two core.
 	 */
-	public Stream<Triple<Integer, Integer, Double>> kNearNbrOfVertex(Integer v, int k) {
-		if (super.nonCoreVertices.contains(v)) {
+	public Stream<Triple<Integer, Integer, Double>> kNearNbrOfVertex(int v, int k) {
+		NavigableSet<Integer> runningK = new TreeSet<Integer>(this.higherWeightPreferred);
+		if (!super.vertexIsInTwoCore[v]) {
 			return Stream.empty();
 		} else {
-			this.runningK.clear();
 			Iterator<Integer> edgeIterator = this.digraph.outgoingEdgesOf(v).iterator();
 			int counter = 0;
 			/*
@@ -91,7 +95,7 @@ public class DirectedToNNDigraph extends SparseGraphDataPreparer implements Near
 			Integer f;
 			while (counter < k && edgeIterator.hasNext()) {
 				f = edgeIterator.next();
-				if (!super.nonCoreEdges.contains(f)) {
+				if (super.edgeIsInTwoCore[f.intValue()]) {
 					runningK.add(f);
 					counter++;
 				}
@@ -104,7 +108,7 @@ public class DirectedToNNDigraph extends SparseGraphDataPreparer implements Near
 
 			while (edgeIterator.hasNext()) {
 				f = edgeIterator.next();
-				if (this.higherWeightPreferred.compare(f, runningK.last()) < 0 && !super.nonCoreEdges.contains(f)) {
+				if (this.higherWeightPreferred.compare(f, runningK.last()) < 0 && super.edgeIsInTwoCore[f.intValue()]) {
 					runningK.remove(runningK.last());
 					runningK.add(f);
 				}
@@ -126,6 +130,11 @@ public class DirectedToNNDigraph extends SparseGraphDataPreparer implements Near
 	@Override
 	public void buildKNearNbrDigraph(int k) {
 		GlobalLog.log(Level.INFO, "Building K-NN digraph for use by rank-based linkage.");
+		/*
+		 * List<Triple<Integer, Integer, Double>> kNNEdgeList =
+		 * this.digraph.vertexSet().parallelStream() .flatMap(v -> kNearNbrOfVertex(v,
+		 * k)).toList();
+		 */// concurrent modification error
 		this.knnDigraph = new SparseIntDirectedWeightedGraph(super.nV,
 				this.digraph.vertexSet().parallelStream().flatMap(v -> kNearNbrOfVertex(v, k)).toList());
 	}
