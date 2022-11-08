@@ -9,6 +9,7 @@ import java.util.logging.Level;
 import algorithms.LinkageGraphBuilder;
 import logging.GlobalLog;
 import orientationStructures.DirectedToNNDigraph;
+import orientationStructures.UndirectedToNNDigraph;
 import readWrite.StringPairCSVReader;
 
 /**
@@ -17,6 +18,7 @@ import readWrite.StringPairCSVReader;
  */
 public class TestLinkageGraphBuilder {
 	DirectedToNNDigraph d2nndg;
+	UndirectedToNNDigraph u2nndg;
 	StringPairCSVReader reader;
 	LinkageGraphBuilder lgb;
 	final boolean higherWeightMoreSimilar = true;
@@ -28,16 +30,19 @@ public class TestLinkageGraphBuilder {
 		GlobalLog.log(Level.INFO, "Instance of " + TestLinkageGraphBuilder.class.getName());
 		this.reader = new StringPairCSVReader();
 		this.d2nndg = new DirectedToNNDigraph();
+		this.u2nndg = new UndirectedToNNDigraph();
 		this.lgb = new LinkageGraphBuilder(higherWeightMoreSimilar);
 	}
 
 	/**
-	 * Insert missing pieces!
-	 * @param args
+	 * Current version works for directed weighted graph input. Need to prepare
+	 * undirected input, and distinguish two cases. Pass a third argument?
+	 * 
+	 * @param args filename, K (# neighbors)
 	 */
 	public static void main(String[] args) {
 		String fileName = args[0];
-		int k = Integer.parseInt(args[1]); //# neighbors
+		int k = Integer.parseInt(args[1]); // # neighbors
 		TestLinkageGraphBuilder test = new TestLinkageGraphBuilder();
 		test.reader.readStringPairsWithWeights(fileName);
 		int nEdges = test.reader.getWeightedEdges().size();
@@ -66,10 +71,10 @@ public class TestLinkageGraphBuilder {
 		GlobalLog.log(Level.INFO, "Sparse directed graph passed to LinkageGraphBuilder.");
 		test.lgb.buildLinkageGraph();
 		DoubleSummaryStatistics inSwayStatistics = test.lgb.getLinkageGraph().edgeSet().stream()
-				.mapToDouble(e->test.lgb.getLinkageGraph().getEdgeWeight(e)).summaryStatistics();
-		GlobalLog.log(Level.INFO,"Insway summary statistics:");
+				.mapToDouble(e -> test.lgb.getLinkageGraph().getEdgeWeight(e)).summaryStatistics();
+		GlobalLog.log(Level.INFO, "Insway summary statistics:");
 		GlobalLog.log(Level.INFO, inSwayStatistics.toString());
-					
+
 	}
 
 }

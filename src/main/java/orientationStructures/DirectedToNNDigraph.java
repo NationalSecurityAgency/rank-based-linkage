@@ -29,11 +29,6 @@ import readWrite.StringPairWithWeight;
 public class DirectedToNNDigraph extends SparseGraphDataPreparer implements NearestNeighborsDigraphSupplier {
 
 	private SparseIntDirectedWeightedGraph digraph, knnDigraph;
-	/*
-	 * Re-usable container for all outgoing edges of a vertex: Maybe bad idea
-	 * because of concurrent modification errors.
-	 */
-	// private NavigableSet<Integer> runningK;
 	/**
 	 * Comparator ranks edge e before edge f if weight(f) &lt; weight(e).
 	 */
@@ -57,7 +52,6 @@ public class DirectedToNNDigraph extends SparseGraphDataPreparer implements Near
 		 */
 		this.higherWeightPreferred = (e, f) -> Double.compare(this.digraph.getEdgeWeight(f),
 				this.digraph.getEdgeWeight(e));
-		// this.runningK = new TreeSet<Integer>(this.higherWeightPreferred);
 	}
 
 	@Override
@@ -69,12 +63,10 @@ public class DirectedToNNDigraph extends SparseGraphDataPreparer implements Near
 	 * 
 	 * Method to return source, target, weight triples for the k outgoing edges from
 	 * source v with largest weight. If v has out-degree less than k, all out edges
-	 * are returned. These streams are flattened, over all source vertices, in the
-	 * {@link buildKNearNbrDigraph} method.
+	 * are returned. These streams are flattened, over all source vertices in the
+	 * two core, in the {@link buildKNearNbrDigraph} method.
 	 * <p>
 	 * Excludes non-two core edges.
-	 * <p>
-	 * ERRORS intermittently on calling this. Maybe stream is bad.
 	 * 
 	 * @param v source vertex
 	 * @param k number to be returned
@@ -130,24 +122,19 @@ public class DirectedToNNDigraph extends SparseGraphDataPreparer implements Near
 	@Override
 	public void buildKNearNbrDigraph(int k) {
 		GlobalLog.log(Level.INFO, "Building K-NN digraph for use by rank-based linkage.");
-		/*
-		 * List<Triple<Integer, Integer, Double>> kNNEdgeList =
-		 * this.digraph.vertexSet().parallelStream() .flatMap(v -> kNearNbrOfVertex(v,
-		 * k)).toList();
-		 */// concurrent modification error
 		this.knnDigraph = new SparseIntDirectedWeightedGraph(super.nV,
 				this.digraph.vertexSet().parallelStream().flatMap(v -> kNearNbrOfVertex(v, k)).toList());
 	}
 
 	/**
-	 * @return the digraph
+	 * @return the N-NN digraph
 	 */
 	public SparseIntDirectedWeightedGraph getKNNDigraph() {
 		return this.knnDigraph;
 	}
 
 	/**
-	 * @return the digraph
+	 * @return the raw input digraph
 	 */
 	public SparseIntDirectedWeightedGraph getDigraph() {
 		return digraph;
