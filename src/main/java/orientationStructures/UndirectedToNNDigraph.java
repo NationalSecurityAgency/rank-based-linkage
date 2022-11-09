@@ -1,3 +1,6 @@
+/* THIS PUBLIC DOMAIN SOFTWARE WAS PRODUCED BY AN EMPLOYEE OF U.S. GOVERNMENT 
+ * AS PART OF THEIR OFFICIAL DUTIES.
+ */
 package orientationStructures;
 
 import java.util.Comparator;
@@ -17,9 +20,10 @@ import logging.GlobalLog;
 import readWrite.StringPairWithWeight;
 
 /**
- * Differs from the directed version in that we build an undirected graph first,
- * take its 2 -core, compute K-NN of each vertex, and write to a directed
- * weighted graph.
+ * Differs from the directed version {@link DirectedToNNDigraph} in that we build an undirected graph first,
+ * take its two core, compute K-NN of each vertex, and write to a directed
+ * weighted graph.<p>
+ * Tested 11.8.2022
  * 
  * @author <a href="https://github.com/probabilist-us">R. W. R. Darling</a>
  *

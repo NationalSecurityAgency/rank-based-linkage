@@ -14,7 +14,7 @@ import orientationStructures.UndirectedToNNDigraph;
 import readWrite.StringPairCSVReader;
 
 /**
- * Not tried yet (11.7.2022). Needs suitable undirected weighted edge data.
+ * Tests {@link UndirectedToNNDigraph}
  * @author <a href="https://github.com/probabilist-us">R. W. R. Darling</a>
  *
  */
@@ -32,11 +32,14 @@ public class TestUndirectedToNNDigraph {
 	}
 
 	/**
-	 * @param args
+	 * @param args first is file name of undirected weighted edge data;
+	 *             <p>
+	 *             second is K (neighbor count)
 	 */
 	public static void main(String[] args) {
 		String fileName = args[0];
 		int k = Integer.parseInt(args[1]); // # neighbors
+		GlobalLog.log(Level.INFO,"Input file: " + fileName);
 		TestUndirectedToNNDigraph test = new TestUndirectedToNNDigraph();
 		test.reader.readStringPairsWithWeights(fileName);
 		int nEdges = test.reader.getWeightedEdges().size();

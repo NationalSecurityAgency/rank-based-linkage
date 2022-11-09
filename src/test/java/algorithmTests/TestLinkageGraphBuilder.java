@@ -43,6 +43,7 @@ public class TestLinkageGraphBuilder {
 	public static void main(String[] args) {
 		String fileName = args[0];
 		int k = Integer.parseInt(args[1]); // # neighbors
+		GlobalLog.log(Level.INFO,"Input file: " + fileName);
 		TestLinkageGraphBuilder test = new TestLinkageGraphBuilder();
 		test.reader.readStringPairsWithWeights(fileName);
 		int nEdges = test.reader.getWeightedEdges().size();

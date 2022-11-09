@@ -3,9 +3,11 @@
  */
 package algorithms;
 
-import java.util.Collections;
+import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.function.IntFunction;
 import java.util.logging.Level;
 import java.util.stream.Collectors;
 
@@ -45,6 +47,7 @@ public class LinkageGraphBuilder {
 	private final boolean higherWeightMoreSimilar;
 	private List<UnorderedPair<Integer, Integer>> mutualFriends;
 	private SparseIntUndirectedWeightedGraph linkageGraph;
+	private Map<Integer, List<Integer>> linksGroupedByInsway;
 	/*
 	 * Graph to be built from links of positive insway.
 	 */
@@ -153,7 +156,18 @@ public class LinkageGraphBuilder {
 		double duration = (double) (System.currentTimeMillis() - start) / 1000.0;
 		GlobalLog.log(Level.INFO,
 				"Linkage graph built in " + duration + " secs, with " + this.linkageGraph.edgeSet().size() + " links.");
+		/*
+		 * The in-sway of an edge is a primitive double. It must be converted to Integer object.
+		 */
+		IntFunction<Integer> inswayInt = e -> Integer.valueOf((int)this.linkageGraph.getEdgeWeight(e));
+		this.linksGroupedByInsway = this.linkageGraph.edgeSet().stream()
+				.collect(Collectors.groupingBy(inswayInt::apply));
+
 	}
+
+	/**
+	 * TODO connected components under various levels of in-sway
+	 */
 
 	/**
 	 * @return the mutual friends, i.e. mutual k-NN
