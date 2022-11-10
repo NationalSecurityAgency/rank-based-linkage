@@ -49,7 +49,7 @@ public class TwoCoreTest {
 	}
 
 	/**
-	 * A random graph one eleven vertices is created. Edge list is inspected. Check
+	 * A random linkageGraph one eleven vertices is created. Edge list is inspected. Check
 	 * whether two core is computed correctly by {@link utilities.TwoCoreIntBased}
 	 * class.
 	 * 

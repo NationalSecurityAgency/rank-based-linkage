@@ -20,9 +20,9 @@ import logging.GlobalLog;
 import readWrite.StringPairWithWeight;
 
 /**
- * Differs from the directed version {@link DirectedToNNDigraph} in that we build an undirected graph first,
+ * Differs from the directed version {@link DirectedToNNDigraph} in that we build an undirected linkageGraph first,
  * take its two core, compute K-NN of each vertex, and write to a directed
- * weighted graph.<p>
+ * weighted linkageGraph.<p>
  * Tested 11.8.2022
  * 
  * @author <a href="https://github.com/probabilist-us">R. W. R. Darling</a>
@@ -45,7 +45,7 @@ public class UndirectedToNNDigraph extends SparseGraphDataPreparer implements Ne
 	}
 
 	/**
-	 * Creates a sparse UNdirected graph.
+	 * Creates a sparse UNdirected linkageGraph.
 	 */
 	@Override
 	public void buildRawSparseGraph(List<StringPairWithWeight> edgeRecords) {
@@ -53,7 +53,7 @@ public class UndirectedToNNDigraph extends SparseGraphDataPreparer implements Ne
 		super.buildObjectIndex();
 		this.graph = new SparseIntUndirectedWeightedGraph(super.nV, super.buildEdgeList());
 		GlobalLog.log(Level.INFO,
-				"Undirected graph built, with " + super.nE + " edges, and " + super.nV + " vertices.");
+				"Undirected linkageGraph built, with " + super.nE + " edges, and " + super.nV + " vertices.");
 		/*
 		 * Comparator ranks edge e before edge f if weight(f) &lt; weight(e).
 		 */
@@ -126,7 +126,7 @@ public class UndirectedToNNDigraph extends SparseGraphDataPreparer implements Ne
 
 	/**
 	 * For every vertex in the two core, the k OUTGOING two core edges of highest
-	 * weight will be placed in a list, from which a new sparse directed graph,
+	 * weight will be placed in a list, from which a new sparse directed linkageGraph,
 	 * this.knnDigraph, is built. We cannot delete some edges from this.digraph,
 	 * which is immutable.
 	 */
@@ -145,7 +145,7 @@ public class UndirectedToNNDigraph extends SparseGraphDataPreparer implements Ne
 	}
 
 	/**
-	 * @return the raw undirected graph
+	 * @return the raw undirected linkageGraph
 	 */
 	public SparseIntUndirectedWeightedGraph getGraph() {
 		return this.graph;

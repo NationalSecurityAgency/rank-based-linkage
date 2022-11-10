@@ -28,8 +28,8 @@ import readWrite.StringPairWithWeight;
  *
  */
 public abstract class SparseGraphDataPreparer {
-	private List<String> sourceTargetStrings; // list of distinct Strings in Source or Target position
-	private Map<String, Integer> vertexIndex; // maps string s to integer i if sourceTargetStrings.get(i) = s
+	private List<String> objectStringLookup; // list of distinct Strings in Source or Target position
+	private Map<String, Integer> vertexIndex; // maps string s to integer i if objectStringLookup.get(i) = s
 	private List<StringPairWithWeight> stwList; // stw means "source, target, weight"
 	public int nV, nE; //One more than highest numbered vertex (resp. edge)
 	boolean[] vertexIsInTwoCore, edgeIsInTwoCore;
@@ -60,15 +60,15 @@ public abstract class SparseGraphDataPreparer {
 	 * WARNING: Not enough to include sources only. Possibly some vertex has
 	 * out-degree zero, but positive in-degree.
 	 * <p>
-	 * Preparation for making a graph with vertices indexed by integers 0 to n
+	 * Preparation for making a linkageGraph with vertices indexed by integers 0 to n
 	 * &minus 1
 	 */
 	public void buildObjectIndex() {
-		this.sourceTargetStrings = this.stwList.stream().flatMap(r -> r.getSourceAndTarget().stream()).distinct()
+		this.objectStringLookup = this.stwList.stream().flatMap(r -> r.getSourceAndTarget().stream()).distinct()
 				.collect(Collectors.toUnmodifiableList());
-		this.nV = this.sourceTargetStrings.size();
+		this.nV = this.objectStringLookup.size();
 		this.vertexIndex = IntStream.range(0, nV).boxed()
-				.collect(Collectors.toUnmodifiableMap(i -> this.sourceTargetStrings.get(i), i -> i));
+				.collect(Collectors.toUnmodifiableMap(i -> this.objectStringLookup.get(i), i -> i));
 		GlobalLog.log(Level.INFO, "Vertex index built, with " + nV + " entries.");
 	}
 
@@ -109,10 +109,10 @@ public abstract class SparseGraphDataPreparer {
 	}
 
 	/**
-	 * @return the sourceTargetStrings as list of distinct objects
+	 * @return the objectStringLookup as list of distinct objects
 	 */
-	public List<String> getSourceTargetStrings() {
-		return sourceTargetStrings;
+	public List<String> getObjectStringLookup() {
+		return objectStringLookup;
 	}
 
 	/**

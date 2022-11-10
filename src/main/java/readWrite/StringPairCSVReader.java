@@ -19,7 +19,7 @@ import logging.GlobalLog;
  * Reads triples of form (String, String, double), and places them in a list of
  * records of type {@link StringPairWithWeight}.
  * <p>
- * The triples can represent either a directed or undirected weighted graph.
+ * The triples can represent either a directed or undirected weighted linkageGraph.
  * There is no restriction of the number of targets associated with each source.
  * The K-NN extraction occurs later. Tested 10.19.2022
  * 

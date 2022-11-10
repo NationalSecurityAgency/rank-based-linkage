@@ -165,15 +165,15 @@ public class ConcordanceExplorer {
 	}
 
 	/**
-	 * Generates a random 3-concordant orientation of the line graph of the complete
-	 * graph on n objects. Not guaranteed to generate such an object uniformly.
+	 * Generates a random 3-concordant orientation of the line linkageGraph of the complete
+	 * linkageGraph on n objects. Not guaranteed to generate such an object uniformly.
 	 * <p>
 	 * Performs a random walk on ranking systems (i.e. rank tables), where two rank
 	 * tables are adjacent if one object x switches the ranks of objects y and z
 	 * whose ranks differ by one.
 	 * <p>
 	 * Start with an acyclic orientation induced by a random ordering of the points
-	 * of the line graph. In particular this is 3-concordant.
+	 * of the line linkageGraph. In particular this is 3-concordant.
 	 * <p>
 	 * The random walk is "reflected at the boundary" of the 3-concordant ranking
 	 * systems, in the sense that a step of the walk is disallowed if it makes some

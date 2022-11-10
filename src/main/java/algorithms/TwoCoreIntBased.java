@@ -15,8 +15,8 @@ import java.util.stream.Collectors;
 import org.jgrapht.graph.AbstractGraph;
 
 /**
- * Computes the vertices and edges in the two core of a graph, WITHOUT
- * constructing e new graph. Process: recognize edges incident to degree one
+ * Computes the vertices and edges in the two core of a linkageGraph, WITHOUT
+ * constructing e new linkageGraph. Process: recognize edges incident to degree one
  * vertices, and update vertex degrees. Modified from trubbl-core project so
  * vertices and edges are both of Integer type. This allows passing results
  * back in the form of boolean arrays.
@@ -27,7 +27,7 @@ import org.jgrapht.graph.AbstractGraph;
  * 
  * * Example
  * <p>
- * Edge list of random graph: {h, b}, {e, b}, {g, h}, {g, d}, {d, f}, {a, k},
+ * Edge list of random linkageGraph: {h, b}, {e, b}, {g, h}, {g, d}, {d, f}, {a, k},
  * {g, e}, {b, k}, {a, g}, Two core vertices: a, b, e, g, h, k, Two core edges:
  * {h, b}, {b, k}, {a, k}, {g, h}, {g, e}, {e, b}, {a, g}, Numbers of edges
  * removed per round: 1, 1, 0,
@@ -37,7 +37,7 @@ import org.jgrapht.graph.AbstractGraph;
  */
 public class TwoCoreIntBased {
 	/*
-	 * The graph will not be changed. We will only reduce the effective degree.
+	 * The linkageGraph will not be changed. We will only reduce the effective degree.
 	 */
 	AbstractGraph<Integer, Integer> graph;
 	final int nV, nE;
@@ -77,7 +77,7 @@ public class TwoCoreIntBased {
 		this.isOuterEdge = e -> (this.isLeafVertex.test(this.graph.getEdgeSource(e))
 				|| this.isLeafVertex.test(this.graph.getEdgeTarget(e)));
 		/*
-		 * Collections to be modified, while leaving graph unchanged.
+		 * Collections to be modified, while leaving linkageGraph unchanged.
 		 */
 		this.twoCoreEdges = this.graph.edgeSet().stream().collect(Collectors.toSet()); // fresh copy
 		this.edgesOutsideTwoCore = new ArrayList<>();

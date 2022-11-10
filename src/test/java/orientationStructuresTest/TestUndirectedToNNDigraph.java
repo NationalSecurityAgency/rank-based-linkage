@@ -45,19 +45,19 @@ public class TestUndirectedToNNDigraph {
 		int nEdges = test.reader.getWeightedEdges().size();
 		GlobalLog.log(Level.INFO, "Edge list has size " + nEdges);
 		/*
-		 * (1) Build raw sparse directed weigted graph
+		 * (1) Build raw sparse directed weigted linkageGraph
 		 */
 		double start = (double) System.currentTimeMillis();
 		GlobalLog.log(Level.INFO, "Edge list has been passed to DirectedToNNDigraph.");
 		test.u2nndg.buildRawSparseGraph(test.reader.getWeightedEdges());
 		double duration = (double) (System.currentTimeMillis() - start) / 1000.0;
-		GlobalLog.log(Level.INFO, "Sparse undirected graph built in " + duration + " seconds.");
+		GlobalLog.log(Level.INFO, "Sparse undirected linkageGraph built in " + duration + " seconds.");
 		/*
 		 * Inspect vertex index map
 		 */
 		Random g = new Random();
 		int index = g.nextInt(test.u2nndg.getnV());
-		String image = test.u2nndg.getSourceTargetStrings().get(index);
+		String image = test.u2nndg.getObjectStringLookup().get(index);
 		GlobalLog.log(Level.INFO, "Random source vertex: index = " + index + "; string = " + image);
 		GlobalLog.log(Level.INFO, "Reverse lookup for image: " + test.u2nndg.getVertexIndex().get(image));
 		/**
@@ -70,7 +70,7 @@ public class TestUndirectedToNNDigraph {
 		 */
 		List<Triple<Integer, Integer, Double>> nbrTest = test.u2nndg.kNearNbrOfVertex(index, k).toList();
 		int index0 = nbrTest.get(0).getSecond();
-		String image0 = test.u2nndg.getSourceTargetStrings().get(index0);
+		String image0 = test.u2nndg.getObjectStringLookup().get(index0);
 		double weight = nbrTest.get(0).getThird();
 		GlobalLog.log(Level.INFO, "Source: " + image + " Target: " + image0 + " Weight: " + weight);
 		/*

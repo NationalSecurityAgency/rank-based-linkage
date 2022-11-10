@@ -39,14 +39,14 @@ public class DirectedToNNDigraph extends SparseGraphDataPreparer implements Near
 	}
 
 	/**
-	 * Creates a sparse directed graph.
+	 * Creates a sparse directed linkageGraph.
 	 */
 	@Override
 	public void buildRawSparseGraph(List<StringPairWithWeight> edgeRecords) {
 		super.setSourceTargetWeightList(edgeRecords);
 		super.buildObjectIndex();
 		this.digraph = new SparseIntDirectedWeightedGraph(super.nV, super.buildEdgeList());// immutable
-		GlobalLog.log(Level.INFO, "Directed graph built, with " + super.nE + " edges, and " + super.nV + " vertices.");
+		GlobalLog.log(Level.INFO, "Directed linkageGraph built, with " + super.nE + " edges, and " + super.nV + " vertices.");
 		/*
 		 * Comparator ranks edge e before edge f if weight(f) &lt; weight(e).
 		 */
@@ -115,7 +115,7 @@ public class DirectedToNNDigraph extends SparseGraphDataPreparer implements Near
 
 	/**
 	 * For every vertex in the two core, the k OUTGOING two core edges of highest
-	 * weight will be placed in a list, from which a new sparse directed graph,
+	 * weight will be placed in a list, from which a new sparse directed linkageGraph,
 	 * this.knnDigraph, is built. We cannot delete some edges from this.digraph,
 	 * which is immutable.
 	 */

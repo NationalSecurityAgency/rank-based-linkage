@@ -10,6 +10,7 @@ import algorithms.LinkageGraphBuilder;
 import logging.GlobalLog;
 import orientationStructures.DirectedToNNDigraph;
 import orientationStructures.UndirectedToNNDigraph;
+import readWrite.LinkageGraphCSVWriter;
 import readWrite.StringPairCSVReader;
 
 /**
@@ -21,6 +22,7 @@ public class TestLinkageGraphBuilder {
 	UndirectedToNNDigraph u2nndg;
 	StringPairCSVReader reader;
 	LinkageGraphBuilder lgb;
+	LinkageGraphCSVWriter lgwriter;
 	final boolean higherWeightMoreSimilar = true;
 
 	/**
@@ -35,15 +37,15 @@ public class TestLinkageGraphBuilder {
 	}
 
 	/**
-	 * Current version works for directed weighted graph input. Need to prepare
-	 * undirected input, and distinguish two cases. Pass a third argument?
+	 * Current version works for directed weighted linkageGraph input. Need to
+	 * prepare undirected input, and distinguish two cases. Pass a third argument?
 	 * 
 	 * @param args filename, K (# neighbors)
 	 */
 	public static void main(String[] args) {
 		String fileName = args[0];
 		int k = Integer.parseInt(args[1]); // # neighbors
-		GlobalLog.log(Level.INFO,"Input file: " + fileName);
+		GlobalLog.log(Level.INFO, "Input file: " + fileName);
 		TestLinkageGraphBuilder test = new TestLinkageGraphBuilder();
 		test.reader.readStringPairsWithWeights(fileName);
 		int nEdges = test.reader.getWeightedEdges().size();
@@ -55,7 +57,7 @@ public class TestLinkageGraphBuilder {
 		double start = (double) System.currentTimeMillis();
 		test.d2nndg.buildRawSparseGraph(test.reader.getWeightedEdges());
 		double duration = (double) (System.currentTimeMillis() - start) / 1000.0;
-		GlobalLog.log(Level.INFO, "Sparse directed graph built in " + duration + " seconds.");
+		GlobalLog.log(Level.INFO, "Sparse directed linkageGraph built in " + duration + " seconds.");
 		/**
 		 * (2) Determine two core. Needed to exclude non-two core vertices and edges
 		 * from K-NN digraph
@@ -69,12 +71,31 @@ public class TestLinkageGraphBuilder {
 		 * Test of LinkageGraphBuilder starts here.
 		 */
 		test.lgb.setDigraph(test.d2nndg.getKNNDigraph());
-		GlobalLog.log(Level.INFO, "Sparse directed graph passed to LinkageGraphBuilder.");
+		GlobalLog.log(Level.INFO, "Sparse directed linkageGraph passed to LinkageGraphBuilder.");
 		test.lgb.buildLinkageGraph();
 		DoubleSummaryStatistics inSwayStatistics = test.lgb.getLinkageGraph().edgeSet().stream()
 				.mapToDouble(e -> test.lgb.getLinkageGraph().getEdgeWeight(e)).summaryStatistics();
-		GlobalLog.log(Level.INFO, "Insway summary statistics:");
+		GlobalLog.log(Level.INFO, "In-sway summary statistics:");
 		GlobalLog.log(Level.INFO, inSwayStatistics.toString());
+		/*
+		 * Count links according to insway
+		 */
+		GlobalLog.log(Level.INFO, "Count links with given in-sway: ");
+		for (int j = test.lgb.getMaxInsway(); j >= 0; j--) {
+			GlobalLog.log(Level.INFO,
+					"# links with in-sway exactly " + j + ": " + test.lgb.getLinkCounByInswayValue()[j]
+							+ "; # links with in-sway GREATER than " + j + ": "
+							+ test.lgb.getLinkCountAboveInswayValue()[j]);
+		}
+		GlobalLog.log(Level.INFO, "Critical in-sway: " + test.lgb.getCriticalInsway());
+		test.lgb.buildTwoCriticalGraphs();
+		GlobalLog.log(Level.INFO,
+				"Subcritical graph has " + test.lgb.getSubCriticalGraph().edgeSet().size() + " edges.");
+		GlobalLog.log(Level.INFO,
+				"Critical graph has " + test.lgb.getCriticalGraph().edgeSet().size() + " edges.");
+		/*
+		 * Export linkage graph
+		 */
 
 	}
 

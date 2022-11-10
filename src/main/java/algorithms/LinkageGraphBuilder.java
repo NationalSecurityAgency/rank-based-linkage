@@ -10,6 +10,7 @@ import java.util.function.IntFunction;
 import java.util.logging.Level;
 import java.util.stream.Collectors;
 
+import org.jgrapht.alg.connectivity.ConnectivityInspector;
 import org.jgrapht.alg.util.Triple;
 import org.jgrapht.alg.util.UnorderedPair;
 import org.jgrapht.opt.graph.sparse.SparseIntDirectedWeightedGraph;
@@ -20,15 +21,15 @@ import logging.GlobalLog;
 /**
  * Takes {@link org.jgrapht.opt.graph.sparse.SparseIntDirectedWeightedGraph}
  * object, with vertex set {0, 1, 2, ..., n &minus; 1}. Even when rankings are
- * built from edge weights of an undirected graph, the relation "is one of the k
- * nearest neighbors of" is not symmetric. Therefore a directed weighted graph
- * type is needed for input storage.
+ * built from edge weights of an undirected linkageGraph, the relation "is one
+ * of the k nearest neighbors of" is not symmetric. Therefore a directed
+ * weighted linkageGraph type is needed for input storage.
  * <p>
  * Call z a friend of x it is one of the k nearest neighbors of x.
  * <p>
- * Starts by computing the graph whose edges are pairs of mutual friends. Take
- * connected components. A linkage graph is computed on each component. This
- * means computing in-sway for each pair of mutual friends.
+ * Starts by computing the linkageGraph whose edges are pairs of mutual friends.
+ * Take connected components. A linkage linkageGraph is computed on each
+ * component. This means computing in-sway for each pair of mutual friends.
  * <p>
  * Turn the pairs of mutual friends {x, z} into a stream, and count for each {x,
  * z} the number of 2-simplices (xz, xy, yz} in which xz is the source. Here at
@@ -43,13 +44,14 @@ import logging.GlobalLog;
 public class LinkageGraphBuilder {
 	private SparseIntDirectedWeightedGraph dataDigraph;
 	private int nO; // number of objects
+	private int maxInsway, criticalInsway; // See getters for meaning
 	private final boolean higherWeightMoreSimilar;
 	private List<UnorderedPair<Integer, Integer>> mutualFriends;
-	private SparseIntUndirectedWeightedGraph linkageGraph;
+	private SparseIntUndirectedWeightedGraph linkageGraph, criticalGraph, subCriticalGraph;// See getters for meaning
 	/*
 	 * Component i of this array is the number of links whose in-sway is exactly i.
 	 */
-	private int[] linkCountForInswayValue;
+	private int[] linkCounByInswayValue, linkCountAboveInswayValue;
 	/*
 	 * Not sure if this map is useful or necessary
 	 */
@@ -140,9 +142,9 @@ public class LinkageGraphBuilder {
 	/**
 	 * First builds mutual friend pairs via a parallel stream.
 	 * <p>
-	 * Build weighted edges set of linkage graph via a parallel stream.
+	 * Build weighted edges set of linkage linkageGraph via a parallel stream.
 	 * <p>
-	 * Frnally create a sparse linkage graph.
+	 * Frnally create a sparse linkage linkageGraph.
 	 */
 	public void buildLinkageGraph() {
 		this.mutualFriends = this.dataDigraph.edgeSet().parallelStream()
@@ -153,15 +155,15 @@ public class LinkageGraphBuilder {
 		// Collections.shuffle(this.mutualFriends); // not allowed for immutable
 		// collection
 		/*
-		 * Edges of the linkage graph and their insway are built as a stresm
+		 * Edges of the linkage linkageGraph and their insway are built as a stresm
 		 */
 		double start = (double) System.currentTimeMillis();
 		this.linkageGraph = new SparseIntUndirectedWeightedGraph(this.nO,
 				this.mutualFriends.parallelStream().map(xz -> new Triple<Integer, Integer, Double>(xz.getFirst(),
 						xz.getSecond(), this.insway(xz.getFirst(), xz.getSecond()))).toList());
 		double duration = (double) (System.currentTimeMillis() - start) / 1000.0;
-		GlobalLog.log(Level.INFO,
-				"Linkage graph built in " + duration + " secs, with " + this.linkageGraph.edgeSet().size() + " links.");
+		GlobalLog.log(Level.INFO, "Linkage linkageGraph built in " + duration + " secs, with "
+				+ this.linkageGraph.edgeSet().size() + " links.");
 		/*
 		 * The in-sway of an edge is a primitive double. It must be converted to Integer
 		 * object.
@@ -172,21 +174,59 @@ public class LinkageGraphBuilder {
 		/*
 		 * Maximum value of insway over all links
 		 */
-		int maxInsway = this.linksGroupedByInsway.keySet().stream().mapToInt(Integer::intValue).max().orElse(0);
-		this.linkCountForInswayValue = new int[1 + maxInsway];
+		this.maxInsway = this.linksGroupedByInsway.keySet().stream().mapToInt(Integer::intValue).max().orElse(0);
+		this.linkCounByInswayValue = new int[1 + maxInsway];
 		/*
 		 * For each value of insway, count the links where insway takes this value, and
 		 * store in array.
 		 */
 		for (Integer insw : this.linksGroupedByInsway.keySet()) {
-			this.linkCountForInswayValue[insw.intValue()] = this.linksGroupedByInsway.get(insw).size();
+			this.linkCounByInswayValue[insw.intValue()] = this.linksGroupedByInsway.get(insw).size();
+		}
+		/*
+		 * Counts links whose insway exceeds value of index
+		 */
+		this.linkCountAboveInswayValue = new int[1 + maxInsway];
+		this.linkCountAboveInswayValue[maxInsway] = 0;
+		this.criticalInsway = this.maxInsway;
+		for (int j = maxInsway - 1; j > -1; j--) {
+			this.linkCountAboveInswayValue[j] = this.linkCountAboveInswayValue[j + 1]
+					+ this.linkCounByInswayValue[j + 1];
+			if (this.linkCountAboveInswayValue[j] < this.nO) {
+				this.criticalInsway--;
+			}
 		}
 
 	}
 
 	/**
-	 * TODO connected components under various levels of in-sway
+	 * Restrict linkage graph to
+	 * <p>
+	 * (a) edges whose in-sway exceeds critical value [SUBCRITICAL]
+	 * <p>
+	 * (b) is not less than critical value [CRITICAL].
 	 */
+	public void buildTwoCriticalGraphs() {
+		IntFunction<Triple<Integer, Integer, Double>> pickEdge = e -> new Triple<>(this.linkageGraph.getEdgeSource(e),
+				this.linkageGraph.getEdgeTarget(e), this.linkageGraph.getEdgeWeight(e));
+		/*
+		 * List of indices of links whose in-sway exceeds the critical in-sway.
+		 */
+		List<Integer> subCriticalEdges = this.linksGroupedByInsway.entrySet().stream()
+				.filter(s -> s.getKey().compareTo(this.criticalInsway) > 0).flatMap(s -> s.getValue().stream())
+				.parallel().toList();
+		this.subCriticalGraph = new SparseIntUndirectedWeightedGraph(this.nO,
+				subCriticalEdges.parallelStream().map(pickEdge::apply).toList());
+		/*
+		 * List of indices of links whose in-sway is not less than the critical in-sway.
+		 */
+		List<Integer> criticalEdges = this.linksGroupedByInsway.entrySet().stream()
+				.filter(s -> s.getKey().compareTo(this.criticalInsway) >= 0).flatMap(s -> s.getValue().stream())
+				.parallel().toList();
+		this.criticalGraph = new SparseIntUndirectedWeightedGraph(this.nO,
+				criticalEdges.parallelStream().map(pickEdge::apply).toList());
+	}
+
 
 	/**
 	 * @return the mutual friends, i.e. mutual k-NN
@@ -196,18 +236,18 @@ public class LinkageGraphBuilder {
 	}
 
 	/**
-	 * @return the linkage graph, whose edge weights are the in-sway between mutual
-	 *         friends
+	 * @return the linkage linkageGraph, whose edge weights are the in-sway between
+	 *         mutual friends
 	 */
 	public SparseIntUndirectedWeightedGraph getLinkageGraph() {
 		return linkageGraph;
 	}
 
 	/**
-	 * @return the linkCountForInswayValue
+	 * @return the linkCounByInswayValue
 	 */
-	public int[] getLinkCountForInswayValue() {
-		return linkCountForInswayValue;
+	public int[] getLinkCounByInswayValue() {
+		return linkCounByInswayValue;
 	}
 
 	/**
@@ -215,6 +255,42 @@ public class LinkageGraphBuilder {
 	 */
 	public Map<Integer, List<Integer>> getLinksGroupedByInsway() {
 		return linksGroupedByInsway;
+	}
+
+	/**
+	 * @return the linkCountAboveInswayValue
+	 */
+	public int[] getLinkCountAboveInswayValue() {
+		return linkCountAboveInswayValue;
+	}
+
+	/**
+	 * @return the maximum value of in-sway over all links
+	 */
+	public int getMaxInsway() {
+		return maxInsway;
+	}
+
+	/**
+	 * @return smallest value of j such that the number of links with in-sway
+	 *         greater than j is less than the number of objects.
+	 */
+	public int getCriticalInsway() {
+		return criticalInsway;
+	}
+
+	/**
+	 * @return the criticalGraph
+	 */
+	public SparseIntUndirectedWeightedGraph getCriticalGraph() {
+		return criticalGraph;
+	}
+
+	/**
+	 * @return the subCriticalGraph
+	 */
+	public SparseIntUndirectedWeightedGraph getSubCriticalGraph() {
+		return subCriticalGraph;
 	}
 
 }

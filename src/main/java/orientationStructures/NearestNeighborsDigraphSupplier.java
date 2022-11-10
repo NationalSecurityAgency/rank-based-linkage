@@ -12,7 +12,7 @@ import readWrite.StringPairWithWeight;
 
 /**
  * This interface is implemented by a class which reads edges of an undirected
- * weighted graph, and by another class for the directed case.
+ * weighted linkageGraph, and by another class for the directed case.
  * 
  * @author <a href="https://github.com/probabilist-us">R. W. R. Darling</a>
  *
