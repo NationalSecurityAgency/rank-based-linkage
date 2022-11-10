@@ -3,7 +3,6 @@
  */
 package algorithms;
 
-import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -47,6 +46,13 @@ public class LinkageGraphBuilder {
 	private final boolean higherWeightMoreSimilar;
 	private List<UnorderedPair<Integer, Integer>> mutualFriends;
 	private SparseIntUndirectedWeightedGraph linkageGraph;
+	/*
+	 * Component i of this array is the number of links whose in-sway is exactly i.
+	 */
+	private int[] linkCountForInswayValue;
+	/*
+	 * Not sure if this map is useful or necessary
+	 */
 	private Map<Integer, List<Integer>> linksGroupedByInsway;
 	/*
 	 * Graph to be built from links of positive insway.
@@ -157,11 +163,24 @@ public class LinkageGraphBuilder {
 		GlobalLog.log(Level.INFO,
 				"Linkage graph built in " + duration + " secs, with " + this.linkageGraph.edgeSet().size() + " links.");
 		/*
-		 * The in-sway of an edge is a primitive double. It must be converted to Integer object.
+		 * The in-sway of an edge is a primitive double. It must be converted to Integer
+		 * object.
 		 */
-		IntFunction<Integer> inswayInt = e -> Integer.valueOf((int)this.linkageGraph.getEdgeWeight(e));
+		IntFunction<Integer> inswayInt = e -> Integer.valueOf((int) this.linkageGraph.getEdgeWeight(e));
 		this.linksGroupedByInsway = this.linkageGraph.edgeSet().stream()
 				.collect(Collectors.groupingBy(inswayInt::apply));
+		/*
+		 * Maximum value of insway over all links
+		 */
+		int maxInsway = this.linksGroupedByInsway.keySet().stream().mapToInt(Integer::intValue).max().orElse(0);
+		this.linkCountForInswayValue = new int[1 + maxInsway];
+		/*
+		 * For each value of insway, count the links where insway takes this value, and
+		 * store in array.
+		 */
+		for (Integer insw : this.linksGroupedByInsway.keySet()) {
+			this.linkCountForInswayValue[insw.intValue()] = this.linksGroupedByInsway.get(insw).size();
+		}
 
 	}
 
@@ -182,6 +201,20 @@ public class LinkageGraphBuilder {
 	 */
 	public SparseIntUndirectedWeightedGraph getLinkageGraph() {
 		return linkageGraph;
+	}
+
+	/**
+	 * @return the linkCountForInswayValue
+	 */
+	public int[] getLinkCountForInswayValue() {
+		return linkCountForInswayValue;
+	}
+
+	/**
+	 * @return the linksGroupedByInsway
+	 */
+	public Map<Integer, List<Integer>> getLinksGroupedByInsway() {
+		return linksGroupedByInsway;
 	}
 
 }
