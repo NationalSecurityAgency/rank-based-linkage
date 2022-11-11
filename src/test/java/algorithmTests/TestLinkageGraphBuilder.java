@@ -22,7 +22,7 @@ public class TestLinkageGraphBuilder {
 	UndirectedToNNDigraph u2nndg;
 	StringPairCSVReader reader;
 	LinkageGraphBuilder lgb;
-	LinkageGraphCSVWriter lgwriter;
+	LinkageGraphCSVWriter lgWriter;
 	final boolean higherWeightMoreSimilar = true;
 
 	/**
@@ -34,6 +34,7 @@ public class TestLinkageGraphBuilder {
 		this.d2nndg = new DirectedToNNDigraph();
 		this.u2nndg = new UndirectedToNNDigraph();
 		this.lgb = new LinkageGraphBuilder(higherWeightMoreSimilar);
+		this.lgWriter = new LinkageGraphCSVWriter();
 	}
 
 	/**
@@ -91,12 +92,19 @@ public class TestLinkageGraphBuilder {
 		test.lgb.buildTwoCriticalGraphs();
 		GlobalLog.log(Level.INFO,
 				"Subcritical graph has " + test.lgb.getSubCriticalGraph().edgeSet().size() + " edges.");
-		GlobalLog.log(Level.INFO,
-				"Critical graph has " + test.lgb.getCriticalGraph().edgeSet().size() + " edges.");
+		GlobalLog.log(Level.INFO, "Critical graph has " + test.lgb.getCriticalGraph().edgeSet().size() + " edges.");
 		/*
-		 * Export linkage graph
+		 * Export both critical and subcritical linkage graphs to a single directory
 		 */
-
+		test.lgWriter.setObjectStringLookup(test.d2nndg.getObjectStringLookup());
+		String dirName = "RBL-" + test.lgb.getNumberObjects() + "-objects-" + inSwayStatistics.getCount() + "-links-"
+				+ k + "-NN-" + System.currentTimeMillis();
+		String fileNameCrit = k + "NN-critical.csv";
+		test.lgWriter.writeEdgesToFile(dirName, fileNameCrit, test.lgb.getCriticalGraph());
+		GlobalLog.log(Level.INFO, "Critical graph has been written to file " + fileNameCrit);
+		String fileNameSubC = k + "NN-subcritical.csv";
+		test.lgWriter.writeEdgesToFile(dirName, fileNameSubC, test.lgb.getSubCriticalGraph());
+		GlobalLog.log(Level.INFO, "Subcritical graph has been written to file " + fileNameSubC);
 	}
 
 }

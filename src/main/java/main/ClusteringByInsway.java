@@ -91,17 +91,19 @@ public class ClusteringByInsway {
 			return this.objectsInSameComponentAs(seed, lgb.getCriticalGraph());
 		}
 	}
-	
-	/*
+
+	/**
 	 * Utility method
+	 * <p>
+	 * TODO: wasteful to compute connected components for one single seed. Best to
+	 * deliver ALL the components.
 	 */
 	private Set<String> objectsInSameComponentAs(String seed, AbstractGraph<Integer, Integer> graph) {
-			ConnectivityInspector<Integer, Integer> inspector = new 
-					ConnectivityInspector<>(graph);
-			Integer v = d2nndg.getVertexIndex().get(seed);
-			return inspector.connectedSetOf(v).stream().map(u -> d2nndg.getObjectStringLookup().get(u))
-					.collect(Collectors.toSet());
-		
+		ConnectivityInspector<Integer, Integer> inspector = new ConnectivityInspector<>(graph);
+		Integer v = d2nndg.getVertexIndex().get(seed);
+		return inspector.connectedSetOf(v).stream().map(u -> d2nndg.getObjectStringLookup().get(u))
+				.collect(Collectors.toSet());
+
 	}
 
 }

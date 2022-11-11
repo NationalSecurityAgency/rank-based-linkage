@@ -1,0 +1,8 @@
+source-vertex,target-vertex,weight
+p[4],p[7],6
+p[5],p[6],6
+p[5],p[9],6
+p[3],p[9],7
+p[6],p[9],7
+p[0],p[6],8
+p[4],p[8],8

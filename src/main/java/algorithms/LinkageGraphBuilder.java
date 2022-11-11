@@ -10,7 +10,6 @@ import java.util.function.IntFunction;
 import java.util.logging.Level;
 import java.util.stream.Collectors;
 
-import org.jgrapht.alg.connectivity.ConnectivityInspector;
 import org.jgrapht.alg.util.Triple;
 import org.jgrapht.alg.util.UnorderedPair;
 import org.jgrapht.opt.graph.sparse.SparseIntDirectedWeightedGraph;
@@ -291,6 +290,13 @@ public class LinkageGraphBuilder {
 	 */
 	public SparseIntUndirectedWeightedGraph getSubCriticalGraph() {
 		return subCriticalGraph;
+	}
+
+	/**
+	 * @return the Number of Objects
+	 */
+	public int getNumberObjects() {
+		return nO;
 	}
 
 }
