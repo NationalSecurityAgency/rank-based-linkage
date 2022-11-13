@@ -41,7 +41,7 @@ public class LinkageGraphCSVWriter {
 	 * @param edgeFileName - name of edge file
 	 */
 	public void writeEdgesToFile(String directory, String edgeFileName, SparseIntUndirectedWeightedGraph linkageGraph) {
-		System.out.println("Writing linkage graph edges as {vertex, vertex, insway} to file: " + edgeFileName);
+		GlobalLog.log(Level.INFO, "Writing linkage graph edges as {vertex, vertex, insway} to file: " + edgeFileName);
 
 		try {
 			this.createFolder(directory);
@@ -71,7 +71,7 @@ public class LinkageGraphCSVWriter {
 		File directory = new File(theFilePath);
 
 		if (directory.exists()) {
-			System.out.println("Folder already exists");
+			GlobalLog.log(Level.INFO,"Folder already exists");
 		} else {
 			result = directory.mkdirs();
 		}

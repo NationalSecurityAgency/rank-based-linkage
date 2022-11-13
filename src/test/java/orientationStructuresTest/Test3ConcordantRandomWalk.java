@@ -1,21 +1,22 @@
 package orientationStructuresTest;
 
-import java.io.IOException;
 import java.util.Arrays;
 import java.util.OptionalInt;
 import java.util.Random;
-import java.util.logging.FileHandler;
 import java.util.logging.Level;
-import java.util.logging.LogManager;
 import java.util.stream.IntStream;
 
 import logging.GlobalLog;
-import logging.HTMLFormatter;
 import orientationStructures.ConcordanceExplorer;
+import readWrite.OrderedNeighborsToEdgesCSVWriter;
 
 /**
- * Test {@link ConcordanceExplorer} class. Example: for n = 1000, 249M edge flips can
- * be completed in 21 seconds.
+ * Test {@link ConcordanceExplorer} class. Example: for n = 1000, 249M edge
+ * flips can be completed in 21 seconds. Write output to file suitable for rank
+ * based linkage.
+ * <p>
+ * WARNING Integer overflow problems appear for n greater than 1000, in cases
+ * where n cubed is involved.
  * 
  * @author <a href="https://github.com/probabilist-us">R. W. R. Darling</a>
  *
@@ -24,7 +25,8 @@ public class Test3ConcordantRandomWalk {
 
 	ConcordanceExplorer r3c;
 	Random g;
-	final int n, num1Simplices;
+	final int n;
+	final double num1Simplices;
 
 	/**
 	 * 
@@ -33,7 +35,8 @@ public class Test3ConcordantRandomWalk {
 	public Test3ConcordantRandomWalk(int num) {
 		GlobalLog.log(Level.INFO, "Instance of " + Test3ConcordantRandomWalk.class.getName());
 		this.n = num;
-		this.num1Simplices = n * (n - 1) * (n - 2) / 2;
+		double nd = (double) n;
+		this.num1Simplices = nd * (nd - 1.0) * (nd - 2.0) / 2.0;
 		r3c = new ConcordanceExplorer(n);
 		g = new Random();
 	}
@@ -109,9 +112,20 @@ public class Test3ConcordantRandomWalk {
 		if (test.n < 10) {
 			test.printRankTable();
 		}
+		/*
+		 * Routine checks of ranking system result.
+		 */
+		test.r3c.checkConsistencyOfRanksWithNbrs();
 		boolean threeConcordantAfter = test.r3c.test3Concordance();
 		GlobalLog.log(Level.INFO, "3-concordant after edge flips? " + threeConcordantAfter);
-
+		/*
+		 * Write rank table to CSV file
+		 */
+		int numNbrs = 16;
+		OrderedNeighborsToEdgesCSVWriter rankTableWriter = new OrderedNeighborsToEdgesCSVWriter();
+		rankTableWriter.setOrderedNeighbors(test.r3c.getRankTable());
+		String outFileName = num + "-objects-" + test.r3c.getNumFlips() + "-edge-flips-" + numNbrs + "-NN" + ".csv";
+		rankTableWriter.writeFirstKNeighborsToEdgeFile(numNbrs, outFileName);
 		/*
 		 * Test sampling without replacement
 		 */

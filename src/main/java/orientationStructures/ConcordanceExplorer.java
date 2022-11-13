@@ -14,14 +14,23 @@ import java.util.Set;
 import java.util.SplittableRandom;
 import java.util.function.IntFunction;
 import java.util.function.IntPredicate;
+import java.util.logging.Level;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+
+import logging.GlobalLog;
+import main.ClusteringByInsway;
 
 /**
  * Research tool with test classes for generating 3-concordant ranking systems.
  * Provides array-based data structures {@link getRankTable} and
- * {@link getOrderedNeighbors}, utility methods for ranking systems, and
- * methods for testing for 3-concordance. Not needed directly for rank-based linkage.
+ * {@link getOrderedNeighbors}, utility methods for ranking systems, and methods
+ * for testing for 3-concordance.
+ * <p>
+ * Used to generate examples for rank-based linkage.
+ * <p>
+ * Includes {@link rejectionSamplerUniform3Concordant} (for up to ten objects),
+ * and {@link edgeFlipProcess} (for thousands of objects).
  * 
  * @author <a href="https://github.com/probabilist-us">R. W. R. Darling</a>
  *
@@ -38,7 +47,12 @@ public class ConcordanceExplorer {
 	private int numFlips;
 	SplittableRandom g;
 
+	/**
+	 * 
+	 * @param numPoints number of objects in ranking system
+	 */
 	public ConcordanceExplorer(int numPoints) {
+		GlobalLog.log(Level.INFO, "Instance of " + ConcordanceExplorer.class.getName());
 		/*
 		 * List of Integers 0, 1, 2, ... ,n-1
 		 */
@@ -94,7 +108,7 @@ public class ConcordanceExplorer {
 	}
 
 	/**
-	 * Initializes rankTable and orderedNeighbors using a random acyclic
+	 * Initializes orderedNeighbors and orderedNeighbors using a random acyclic
 	 * orientation.
 	 */
 	public void generateConcordant() {
@@ -165,8 +179,9 @@ public class ConcordanceExplorer {
 	}
 
 	/**
-	 * Generates a random 3-concordant orientation of the line linkageGraph of the complete
-	 * linkageGraph on n objects. Not guaranteed to generate such an object uniformly.
+	 * Generates a random 3-concordant orientation of the line linkageGraph of the
+	 * complete linkageGraph on n objects. Not guaranteed to generate such an object
+	 * uniformly.
 	 * <p>
 	 * Performs a random walk on ranking systems (i.e. rank tables), where two rank
 	 * tables are adjacent if one object x switches the ranks of objects y and z
@@ -391,11 +406,11 @@ public class ConcordanceExplorer {
 	/**
 	 * @return the rank Table
 	 *         <p>
-	 *         rankTable[x][y] = k means y is the k-th nearest neighbor of x,
+	 *         orderedNeighbors[x][y] = k means y is the k-th nearest neighbor of x,
 	 *         according to x's ranking. The same relationship is expressed by
 	 *         orderedNeighbors[x][k] = y, where the objects are treated as the set
 	 *         S:={0, 1, 2, ..., n-1}, and ranks k are elements of {1, 2, ...,n-1}.
-	 *         By convention rankTable[x][x] = 0.
+	 *         By convention orderedNeighbors[x][x] = 0.
 	 */
 	public int[][] getRankTable() {
 		return rankTable;
@@ -408,6 +423,19 @@ public class ConcordanceExplorer {
 		return orderedNeighbors;
 	}
 
+	public void checkConsistencyOfRanksWithNbrs() {
+		int index = this.g.nextInt(this.n);
+		int rank = this.g.nextInt(this.n - 1);
+		int objectAtRank = this.orderedNeighbors[index][rank];
+		int rankOfObject = this.rankTable[index][objectAtRank];
+		GlobalLog.log(Level.INFO, "0 position among neighbors of " +index + " is "+
+				this.orderedNeighbors[index][0]);
+		GlobalLog.log(Level.INFO, "For object " + index + ", object at rank " + rank +
+				" is " + objectAtRank);
+		GlobalLog.log(Level.INFO, "Rank of this object in table is " + rankOfObject);
+		
+	}
+
 	/**
 	 * @return the number of Flips
 	 */
@@ -416,7 +444,7 @@ public class ConcordanceExplorer {
 	}
 
 	/**
-	 * @param rankTable the rankTable to set
+	 * @param orderedNeighbors the orderedNeighbors to set
 	 */
 	public void setRankTable(int[][] rankTable) {
 		this.rankTable = rankTable;

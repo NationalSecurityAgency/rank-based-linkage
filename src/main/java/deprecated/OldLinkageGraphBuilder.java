@@ -40,7 +40,7 @@ public class OldLinkageGraphBuilder {
 
 	/**
 	 * 
-	 * @param rankTable an n &times; n array. Whenever object j is at rank r
+	 * @param orderedNeighbors an n &times; n array. Whenever object j is at rank r
 	 *                  according to i, add triple (i, j, r) to the partial rankings
 	 *                  provided 0 &lt; r &le; K.
 	 */
