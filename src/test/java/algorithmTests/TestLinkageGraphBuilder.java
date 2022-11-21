@@ -90,19 +90,22 @@ public class TestLinkageGraphBuilder {
 		}
 		GlobalLog.log(Level.INFO, "Critical in-sway: " + test.lgb.getCriticalInsway());
 		test.lgb.buildTwoCriticalGraphs();
-		GlobalLog.log(Level.INFO,
-				"Subcritical graph has " + test.lgb.getSubCriticalGraph().edgeSet().size() + " edges.");
-		GlobalLog.log(Level.INFO, "Critical graph has " + test.lgb.getCriticalGraph().edgeSet().size() + " edges.");
+		int nCritEdges = test.lgb.getCriticalGraph().edgeSet().size();
+		GlobalLog.log(Level.INFO, "Critical graph has " + nCritEdges + " edges.");
+		int nSubcEdges = test.lgb.getSubCriticalGraph().edgeSet().size();
+		GlobalLog.log(Level.INFO, "Subcritical graph has " + nSubcEdges + " edges.");
+
 		/*
 		 * Export both critical and subcritical linkage graphs to a single directory
 		 */
 		test.lgWriter.setObjectStringLookup(test.d2nndg.getObjectStringLookup());
-		String dirName = "RBL-" + test.lgb.getNumberObjects() + "-objects-" + inSwayStatistics.getCount() + "-links-"
+		String prefix = "RBL-" + test.lgb.getNumberObjects() + "-objects-";
+		String dirName = prefix + inSwayStatistics.getCount() + "-links-"
 				+ k + "-NN-" + System.currentTimeMillis();
-		String fileNameCrit = k + "NN-critical.csv";
+		String fileNameCrit = prefix + k + "-NN-critical-" + nCritEdges + ".csv";
 		test.lgWriter.writeEdgesToFile(dirName, fileNameCrit, test.lgb.getCriticalGraph());
 		GlobalLog.log(Level.INFO, "Critical graph has been written to file " + fileNameCrit);
-		String fileNameSubC = k + "NN-subcritical.csv";
+		String fileNameSubC = prefix + k + "-NN-subcritical" + nSubcEdges + ".csv";
 		test.lgWriter.writeEdgesToFile(dirName, fileNameSubC, test.lgb.getSubCriticalGraph());
 		GlobalLog.log(Level.INFO, "Subcritical graph has been written to file " + fileNameSubC);
 	}

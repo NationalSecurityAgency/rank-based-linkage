@@ -121,7 +121,7 @@ public class Test3ConcordantRandomWalk {
 		/*
 		 * Write rank table to CSV file
 		 */
-		int numNbrs = 16;
+		int numNbrs = 64;
 		OrderedNeighborsToEdgesCSVWriter rankTableWriter = new OrderedNeighborsToEdgesCSVWriter();
 		rankTableWriter.setOrderedNeighbors(test.r3c.getRankTable());
 		String outFileName = num + "-objects-" + test.r3c.getNumFlips() + "-edge-flips-" + numNbrs + "-NN" + ".csv";

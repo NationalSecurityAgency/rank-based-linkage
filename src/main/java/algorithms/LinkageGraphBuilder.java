@@ -35,7 +35,9 @@ import logging.GlobalLog;
  * least one of x and z must be a friend of y.
  * <p>
  * Computation of ranks is unnecessary; just compare neighbors of vertex v
- * according to weight of outgoing edges from v.
+ * according to weight of outgoing edges from v. 
+ * <p>
+ * Tested via {@link test.algorithmTests.TestLinkageGraphBuilder} on variety of directed graphs.
  * 
  * @author <a href="https://github.com/probabilist-us">R. W. R. Darling</a>
  *

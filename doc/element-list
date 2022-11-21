@@ -1,7 +1,12 @@
+algorithms
+algorithmTests
+deprecated
 linkageTests
+logging
 main
 orientationGenerators
 orientationStructures
 orientationStructuresTest
 readWrite
+readWriteTests
 utilities
