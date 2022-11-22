@@ -29,13 +29,16 @@ import readWrite.StringPairWithWeight;
 public class DirectedToNNDigraph extends SparseGraphDataPreparer implements NearestNeighborsDigraphSupplier {
 
 	private SparseIntDirectedWeightedGraph digraph, knnDigraph;
+	private boolean higherWeightIsBetter;
 	/**
-	 * Comparator ranks edge e before edge f if weight(f) &lt; weight(e).
+	 * Comparator ranks edge e before edge f if weight(f) &lt; weight(e), assuming
+	 * higherWeightIsBetter is true, and vice versa.
 	 */
-	public Comparator<Integer> higherWeightPreferred;
+	public Comparator<Integer> edgeMoreSimilarThan;
 
-	public DirectedToNNDigraph() {
+	public DirectedToNNDigraph(boolean higherBetter) {
 		GlobalLog.log(Level.INFO, "Instance of " + DirectedToNNDigraph.class.getName());
+		this.higherWeightIsBetter = higherBetter;
 	}
 
 	/**
@@ -46,13 +49,22 @@ public class DirectedToNNDigraph extends SparseGraphDataPreparer implements Near
 		super.setSourceTargetWeightList(edgeRecords);
 		super.buildObjectIndex();
 		this.digraph = new SparseIntDirectedWeightedGraph(super.nV, super.buildEdgeList());// immutable
-		GlobalLog.log(Level.INFO, "Directed linkageGraph built, with " + super.nE + " edges, and " + super.nV + " vertices.");
+		GlobalLog.log(Level.INFO,
+				"Directed linkageGraph built, with " + super.nE + " edges, and " + super.nV + " vertices.");
 		/*
-		 * Comparator ranks edge e before edge f if weight(f) &lt; weight(e).
+		 * Comparator ranks edge e before edge f if weight(f) &lt; weight(e) if
+		 * higherWeightIsBetter is true
 		 */
-		this.higherWeightPreferred = (e, f) -> Double.compare(this.digraph.getEdgeWeight(f),
-				this.digraph.getEdgeWeight(e));
+		if (this.higherWeightIsBetter) {
+			this.edgeMoreSimilarThan = (e, f) -> Double.compare(this.digraph.getEdgeWeight(f),
+					this.digraph.getEdgeWeight(e));
+		} else {
+			this.edgeMoreSimilarThan = (e, f) -> Double.compare(this.digraph.getEdgeWeight(e),
+					this.digraph.getEdgeWeight(f));
+		}
 	}
+
+	
 
 	@Override
 	public void determineTwoCore() {
@@ -74,7 +86,7 @@ public class DirectedToNNDigraph extends SparseGraphDataPreparer implements Near
 	 *         empty stream if v is not in the two core.
 	 */
 	public Stream<Triple<Integer, Integer, Double>> kNearNbrOfVertex(int v, int k) {
-		NavigableSet<Integer> runningK = new TreeSet<Integer>(this.higherWeightPreferred);
+		NavigableSet<Integer> runningK = new TreeSet<Integer>(this.edgeMoreSimilarThan);
 		if (!super.vertexIsInTwoCore[v]) {
 			return Stream.empty();
 		} else {
@@ -100,7 +112,7 @@ public class DirectedToNNDigraph extends SparseGraphDataPreparer implements Near
 
 			while (edgeIterator.hasNext()) {
 				f = edgeIterator.next();
-				if (this.higherWeightPreferred.compare(f, runningK.last()) < 0 && super.edgeIsInTwoCore[f.intValue()]) {
+				if (this.edgeMoreSimilarThan.compare(f, runningK.last()) < 0 && super.edgeIsInTwoCore[f.intValue()]) {
 					runningK.remove(runningK.last());
 					runningK.add(f);
 				}
@@ -115,9 +127,9 @@ public class DirectedToNNDigraph extends SparseGraphDataPreparer implements Near
 
 	/**
 	 * For every vertex in the two core, the k OUTGOING two core edges of highest
-	 * weight will be placed in a list, from which a new sparse directed linkageGraph,
-	 * this.knnDigraph, is built. We cannot delete some edges from this.digraph,
-	 * which is immutable.
+	 * weight will be placed in a list, from which a new sparse directed
+	 * linkageGraph, this.knnDigraph, is built. We cannot delete some edges from
+	 * this.digraph, which is immutable.
 	 */
 	@Override
 	public void buildKNearNbrDigraph(int k) {

@@ -28,7 +28,7 @@ public class TestUndirectedToNNDigraph {
 	public TestUndirectedToNNDigraph() {
 		GlobalLog.log(Level.INFO, "Instance of " + TestUndirectedToNNDigraph.class.getName());
 		this.reader = new StringPairCSVReader();
-		this.u2nndg = new UndirectedToNNDigraph();
+		this.u2nndg = new UndirectedToNNDigraph(true);
 	}
 
 	/**

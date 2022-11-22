@@ -5,20 +5,21 @@ package main;
 
 import java.util.List;
 import java.util.Map;
-import java.util.Properties;
+import java.util.OptionalInt;
 import java.util.Set;
 import java.util.logging.Level;
-import java.util.stream.Collectors;
 
-import org.jgrapht.alg.connectivity.ConnectivityInspector;
-import org.jgrapht.graph.AbstractGraph;
+import org.jgrapht.opt.graph.sparse.SparseIntDirectedWeightedGraph;
 
 import algorithms.LinkageGraphBuilder;
 import logging.GlobalLog;
 import orientationStructures.DirectedToNNDigraph;
+import orientationStructures.UndirectedToNNDigraph;
 import readWrite.StringPairCSVReader;
+import readWrite.StringPairWithWeight;
 
 /**
+ * REVISE! TODO
  * In this version, input can be either
  * <p>
  * &bull; [Command line option -Dh or -Dl] Directed graph D with edge weights,
@@ -78,24 +79,35 @@ import readWrite.StringPairCSVReader;
  *
  */
 public class ClusteringByInsway {
+	private List<StringPairWithWeight> edgeRecords;
 	private final boolean higherWeightMoreSimilar;
 	private final boolean inputEdgesAreDirected;
+	private final int kNN;
+	private OptionalInt maxCluster;
 	/*
 	 * Allowed values of args[2]
 	 */
 	static final Set<String> inputGraphOptions = Set.of("Dh", "Dl", "Uh", "Ul");
-	DirectedToNNDigraph d2nndg;
-	StringPairCSVReader reader;
+	private SparseIntDirectedWeightedGraph knnDigraph;
 	LinkageGraphBuilder lgb;
 	List<Set<String>> subcriticalComponents;
 	Map<String, Integer> objectToComponentMap;
-
-	public ClusteringByInsway(boolean directed, boolean higherIsBetter) {
-		// this.inputGraphProperties = new Properties()
+/**
+ * 
+ * @param weightedEdges
+ * @param directed
+ * @param higherIsBetter
+ * @param numNN
+ * @param maxClusterSize
+ */
+	public ClusteringByInsway(List<StringPairWithWeight> weightedEdges, boolean directed, boolean higherIsBetter,
+			int numNN, OptionalInt maxClusterSize) {
+		this.edgeRecords = weightedEdges;
 		this.inputEdgesAreDirected = directed;
 		this.higherWeightMoreSimilar = higherIsBetter;
+		this.kNN = numNN;
+		this.maxCluster = maxClusterSize;
 		GlobalLog.log(Level.INFO, "Instance of " + ClusteringByInsway.class.getName());
-
 	}
 
 	/**
@@ -103,65 +115,88 @@ public class ClusteringByInsway {
 	 * @param args args[0] is input file name; format is .CSV, each line is: source,
 	 *             target, weight
 	 *             <p>
-	 *             args[1] is integer k to count # nearest neighbors
+	 *             args[1] is one of: Dh, Dl, Uh, Ul explained above
 	 *             <p>
-	 *             args[2] is one of: Dh, Dl, Uh, Ul explained above
+	 *             args[2] is integer k to count # nearest neighbors (e.g.8)
+	 *             <p>
+	 *             args[3] MAY BE OMITTED! integer referring to user-preferred
+	 *             maximum cluster size (e.g. 100). This will determine in-sway
+	 *             threshold for graph components. If omitted, the subcritical
+	 *             clustering will be returned.
 	 */
 	public static void main(String[] args) {
 		String fileName = args[0];
-		int k = Integer.parseInt(args[1]); // # neighbors
-		GlobalLog.log(Level.INFO, "Input file: " + fileName + "; # neighbors: " + k);
-		String modifiers = args[2];
+		String modifiers = args[1];
 		if (!inputGraphOptions.contains(modifiers)) {
 			throw new IllegalArgumentException("Third argument must be one of: " + " Dh," + " Dl," + " Uh," + " Ul.");
 		} else {
-			boolean isDirected = modifiers.startsWith(new String("D"));
-			boolean higherBetter = modifiers.endsWith(new String("h"));
-			ClusteringByInsway rbl = new ClusteringByInsway(isDirected, higherBetter);
+			boolean isDirected = modifiers.startsWith(new String("D")) ? true : false;
+			boolean higherBetter = modifiers.endsWith(new String("h")) ? true : false;
+			int k = Integer.parseInt(args[2]); // # neighbors
+			OptionalInt maxClusterSize = OptionalInt.empty();
+			if (args.length > 3) {
+				maxClusterSize = OptionalInt.of(Integer.parseInt(args[3]));
+			}
+			StringPairCSVReader reader = new StringPairCSVReader();
+			reader.readStringPairsWithWeights(fileName);
+			int nEdges = reader.getWeightedEdges().size();
+			GlobalLog.log(Level.INFO, "Edge list has size " + nEdges);
+			ClusteringByInsway rbl = new ClusteringByInsway(reader.getWeightedEdges(), isDirected, higherBetter, k,
+					maxClusterSize);
+			GlobalLog.log(Level.INFO, "Input file " + fileName + ", size: " + nEdges + "; directed edges? " + isDirected
+					+ "; higher edge weights mean more similar? " + higherBetter);
+			GlobalLog.log(Level.INFO, k + " nearest neighbors will be used; maximum cluster size " + maxClusterSize);
+			/*
+			 * Prepare the k-NN digraph
+			 */
+			rbl.prepareNNDigraph();
+			rbl.buildLinkageGraph();
 			// Copy stuff from other tests. then done!
 		}
 	}
 
-	/**
-	 * TODO Change design. Need (1) String to (int) component map, and (2) for each
-	 * (int) component, variable length list  of members.
-	 * 
-	 * @param seed is one of the objects among the input data
-	 * @return objects in the same component of the subcritical linkage graph
-	 */
-	public Set<String> objectsInSameSubcriticalComponentAs(String seed) throws IllegalArgumentException {
-		if (!d2nndg.getVertexIndex().containsKey(seed)) {
-			throw new IllegalArgumentException("Cannot find this String in lookup table.");
+	private void prepareNNDigraph() {
+		if(this.inputEdgesAreDirected) {
+			DirectedToNNDigraph d2nndg = new DirectedToNNDigraph(this.higherWeightMoreSimilar);
+			d2nndg.buildRawSparseGraph(this.edgeRecords);
+			d2nndg.determineTwoCore();
+			d2nndg.buildKNearNbrDigraph(this.kNN);
+			this.knnDigraph = d2nndg.getKNNDigraph();
 		} else {
-			return this.objectsInSameComponentAs(seed, lgb.getSubCriticalGraph());
+			UndirectedToNNDigraph u2nndg = new UndirectedToNNDigraph(this.higherWeightMoreSimilar);
+			u2nndg.buildRawSparseGraph(this.edgeRecords);
+			u2nndg.determineTwoCore();
+			u2nndg.buildKNearNbrDigraph(this.kNN);
+			this.knnDigraph = u2nndg.getKNNDigraph();
 		}
+	}
+	
+	private void buildLinkageGraph() {
+		this.lgb = new LinkageGraphBuilder(this.higherWeightMoreSimilar);
+		this.lgb.setDigraph(this.knnDigraph);
+		this.lgb.buildLinkageGraph();
+	}
+	
+	private void buildSubcriticalClusters() {
+		this.lgb.buildTwoCriticalGraphs();
+		//TODO connectivity for subcritical
+	}
+	
+	private void buildClustersNotBiggerThan(int mx) {
+		//TODO Union Find
+		
 	}
 
 	/**
-	 * 
-	 * @param seed is one of the objects among the input data
-	 * @return objects in the same component of the critical linkage graph
-	 */
-	public Set<String> objectsInSameCriticalComponentAs(String seed) throws IllegalArgumentException {
-		if (!d2nndg.getVertexIndex().containsKey(seed)) {
-			throw new IllegalArgumentException("Cannot find this String in lookup table.");
-		} else {
-			return this.objectsInSameComponentAs(seed, lgb.getCriticalGraph());
-		}
-	}
-
-	/**
-	 * Utility method
+	 * TODO Change design.
 	 * <p>
-	 * TODO: wasteful to compute connected components for one single seed. Best to
-	 * deliver ALL the components.
+	 * Need to tune the in-sway threshold to give desired max cluster size. Use
+	 * UnionFind in JGraphT.
+	 * <p>
+	 * Need (1) String to (int) component map, and (2) for each (int) component,
+	 * variable length list of members.
+	 * 
 	 */
-	private Set<String> objectsInSameComponentAs(String seed, AbstractGraph<Integer, Integer> graph) {
-		ConnectivityInspector<Integer, Integer> inspector = new ConnectivityInspector<>(graph);
-		Integer v = d2nndg.getVertexIndex().get(seed);
-		return inspector.connectedSetOf(v).stream().map(u -> d2nndg.getObjectStringLookup().get(u))
-				.collect(Collectors.toSet());
 
-	}
 
 }

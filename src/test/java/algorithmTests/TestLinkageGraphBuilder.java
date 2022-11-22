@@ -31,8 +31,8 @@ public class TestLinkageGraphBuilder {
 	public TestLinkageGraphBuilder() {
 		GlobalLog.log(Level.INFO, "Instance of " + TestLinkageGraphBuilder.class.getName());
 		this.reader = new StringPairCSVReader();
-		this.d2nndg = new DirectedToNNDigraph();
-		this.u2nndg = new UndirectedToNNDigraph();
+		this.d2nndg = new DirectedToNNDigraph(true);
+		this.u2nndg = new UndirectedToNNDigraph(true);
 		this.lgb = new LinkageGraphBuilder(higherWeightMoreSimilar);
 		this.lgWriter = new LinkageGraphCSVWriter();
 	}

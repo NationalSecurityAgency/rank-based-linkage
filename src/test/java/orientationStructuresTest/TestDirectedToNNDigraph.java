@@ -27,7 +27,7 @@ public class TestDirectedToNNDigraph {
 	public TestDirectedToNNDigraph() {
 		GlobalLog.log(Level.INFO, "Instance of " + TestDirectedToNNDigraph.class.getName());
 		this.reader = new StringPairCSVReader();
-		this.d2nndg = new DirectedToNNDigraph();
+		this.d2nndg = new DirectedToNNDigraph(true); // higher weight is better
 	}
 
 	/**
