@@ -35,9 +35,10 @@ import logging.GlobalLog;
  * least one of x and z must be a friend of y.
  * <p>
  * Computation of ranks is unnecessary; just compare neighbors of vertex v
- * according to weight of outgoing edges from v. 
+ * according to weight of outgoing edges from v.
  * <p>
- * Tested via {@link test.algorithmTests.TestLinkageGraphBuilder} on variety of directed graphs.
+ * Tested via {@link test.algorithmTests.TestLinkageGraphBuilder} on variety of
+ * directed graphs.
  * 
  * @author <a href="https://github.com/probabilist-us">R. W. R. Darling</a>
  *
@@ -49,6 +50,7 @@ public class LinkageGraphBuilder {
 	private final boolean higherWeightMoreSimilar;
 	private List<UnorderedPair<Integer, Integer>> mutualFriends;
 	private SparseIntUndirectedWeightedGraph linkageGraph, criticalGraph, subCriticalGraph;// See getters for meaning
+	private IntFunction<Triple<Integer, Integer, Double>> pickEdge;
 	/*
 	 * Component i of this array is the number of links whose in-sway is exactly i.
 	 */
@@ -166,6 +168,11 @@ public class LinkageGraphBuilder {
 		GlobalLog.log(Level.INFO, "Linkage linkageGraph built in " + duration + " secs, with "
 				+ this.linkageGraph.edgeSet().size() + " links.");
 		/*
+		 * Convenience method used later
+		 */
+		this.pickEdge = e -> new Triple<>(this.linkageGraph.getEdgeSource(e), this.linkageGraph.getEdgeTarget(e),
+				this.linkageGraph.getEdgeWeight(e));
+		/*
 		 * The in-sway of an edge is a primitive double. It must be converted to Integer
 		 * object.
 		 */
@@ -201,15 +208,10 @@ public class LinkageGraphBuilder {
 	}
 
 	/**
-	 * Restrict linkage graph to
-	 * <p>
-	 * (a) edges whose in-sway exceeds critical value [SUBCRITICAL]
-	 * <p>
-	 * (b) is not less than critical value [CRITICAL].
+	 * Restrict linkage graph to edges whose in-sway exceeds critical value
+	 * [SUBCRITICAL]
 	 */
-	public void buildTwoCriticalGraphs() {
-		IntFunction<Triple<Integer, Integer, Double>> pickEdge = e -> new Triple<>(this.linkageGraph.getEdgeSource(e),
-				this.linkageGraph.getEdgeTarget(e), this.linkageGraph.getEdgeWeight(e));
+	public void buildSubCriticalGraph() {
 		/*
 		 * List of indices of links whose in-sway exceeds the critical in-sway.
 		 */
@@ -218,6 +220,14 @@ public class LinkageGraphBuilder {
 				.parallel().toList();
 		this.subCriticalGraph = new SparseIntUndirectedWeightedGraph(this.nO,
 				subCriticalEdges.parallelStream().map(pickEdge::apply).toList());
+
+	}
+
+	/**
+	 * Restrict linkage graph to edges whose in-sway is not less than critical value
+	 * [CRITICAL].
+	 */
+	public void buildCriticalGraph() {
 		/*
 		 * List of indices of links whose in-sway is not less than the critical in-sway.
 		 */
@@ -227,7 +237,6 @@ public class LinkageGraphBuilder {
 		this.criticalGraph = new SparseIntUndirectedWeightedGraph(this.nO,
 				criticalEdges.parallelStream().map(pickEdge::apply).toList());
 	}
-
 
 	/**
 	 * @return the mutual friends, i.e. mutual k-NN

@@ -3,12 +3,14 @@
  */
 package main;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.OptionalInt;
 import java.util.Set;
 import java.util.logging.Level;
 
+import org.jgrapht.alg.connectivity.ConnectivityInspector;
 import org.jgrapht.opt.graph.sparse.SparseIntDirectedWeightedGraph;
 
 import algorithms.LinkageGraphBuilder;
@@ -19,8 +21,7 @@ import readWrite.StringPairCSVReader;
 import readWrite.StringPairWithWeight;
 
 /**
- * REVISE! TODO
- * In this version, input can be either
+ * REVISE! TODO In this version, input can be either
  * <p>
  * &bull; [Command line option -Dh or -Dl] Directed graph D with edge weights,
  * supplied as multiple lines of form (String source, String target, Double
@@ -92,14 +93,15 @@ public class ClusteringByInsway {
 	LinkageGraphBuilder lgb;
 	List<Set<String>> subcriticalComponents;
 	Map<String, Integer> objectToComponentMap;
-/**
- * 
- * @param weightedEdges
- * @param directed
- * @param higherIsBetter
- * @param numNN
- * @param maxClusterSize
- */
+
+	/**
+	 * 
+	 * @param weightedEdges
+	 * @param directed
+	 * @param higherIsBetter
+	 * @param numNN
+	 * @param maxClusterSize
+	 */
 	public ClusteringByInsway(List<StringPairWithWeight> weightedEdges, boolean directed, boolean higherIsBetter,
 			int numNN, OptionalInt maxClusterSize) {
 		this.edgeRecords = weightedEdges;
@@ -151,12 +153,12 @@ public class ClusteringByInsway {
 			 */
 			rbl.prepareNNDigraph();
 			rbl.buildLinkageGraph();
-			// Copy stuff from other tests. then done!
+			// TODO (1) clustering (2) export
 		}
 	}
 
 	private void prepareNNDigraph() {
-		if(this.inputEdgesAreDirected) {
+		if (this.inputEdgesAreDirected) {
 			DirectedToNNDigraph d2nndg = new DirectedToNNDigraph(this.higherWeightMoreSimilar);
 			d2nndg.buildRawSparseGraph(this.edgeRecords);
 			d2nndg.determineTwoCore();
@@ -170,21 +172,38 @@ public class ClusteringByInsway {
 			this.knnDigraph = u2nndg.getKNNDigraph();
 		}
 	}
-	
+
 	private void buildLinkageGraph() {
 		this.lgb = new LinkageGraphBuilder(this.higherWeightMoreSimilar);
 		this.lgb.setDigraph(this.knnDigraph);
 		this.lgb.buildLinkageGraph();
 	}
-	
+
 	private void buildSubcriticalClusters() {
-		this.lgb.buildTwoCriticalGraphs();
-		//TODO connectivity for subcritical
+		this.lgb.buildSubCriticalGraph();
+		ConnectivityInspector<Integer, Integer> inspector = new ConnectivityInspector(this.lgb.getSubCriticalGraph());
+		/*
+		 * Components which are not singletons
+		 */
+		List<Set<Integer>> componentsGT1 = inspector.connectedSets().stream().filter(c -> c.size() > 1).toList();
+		int n = this.knnDigraph.vertexSet().size();
+		/*
+		 * Create int[n] array which maps each vertex to its component number,
+		 * or to -1 if it is a singleton.
+		 */
+		int[] whichComponent = new int[n];
+		Arrays.fill(whichComponent, -1); // singletons assigned to "-1" component
+		for(int c = 0; c < componentsGT1.size(); c++) {
+			for(Integer vertex : componentsGT1.get(c)) {
+				whichComponent[vertex.intValue()] = c;
+			}
+		}
+
 	}
-	
+
 	private void buildClustersNotBiggerThan(int mx) {
-		//TODO Union Find
-		
+		// TODO Union Find
+
 	}
 
 	/**
@@ -197,6 +216,5 @@ public class ClusteringByInsway {
 	 * variable length list of members.
 	 * 
 	 */
-
 
 }
