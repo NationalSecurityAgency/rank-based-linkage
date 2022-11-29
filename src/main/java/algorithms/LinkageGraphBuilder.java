@@ -3,6 +3,7 @@
  */
 package algorithms;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -10,6 +11,7 @@ import java.util.function.IntFunction;
 import java.util.logging.Level;
 import java.util.stream.Collectors;
 
+import org.jgrapht.alg.connectivity.ConnectivityInspector;
 import org.jgrapht.alg.util.Triple;
 import org.jgrapht.alg.util.UnorderedPair;
 import org.jgrapht.opt.graph.sparse.SparseIntDirectedWeightedGraph;
@@ -39,6 +41,9 @@ import logging.GlobalLog;
  * <p>
  * Tested via {@link test.algorithmTests.TestLinkageGraphBuilder} on variety of
  * directed graphs.
+ * <p>
+ * TODO Detect minimum in-sway t so no component of L_t has size more than a given m.
+ * Here L_t are links on in-sway at least t. 
  * 
  * @author <a href="https://github.com/probabilist-us">R. W. R. Darling</a>
  *
@@ -50,6 +55,7 @@ public class LinkageGraphBuilder {
 	private final boolean higherWeightMoreSimilar;
 	private List<UnorderedPair<Integer, Integer>> mutualFriends;
 	private SparseIntUndirectedWeightedGraph linkageGraph, criticalGraph, subCriticalGraph;// See getters for meaning
+	private int[] whichComponent; // used when writing edges of subcritical graph to file
 	private IntFunction<Triple<Integer, Integer, Double>> pickEdge;
 	/*
 	 * Component i of this array is the number of links whose in-sway is exactly i.
@@ -78,6 +84,7 @@ public class LinkageGraphBuilder {
 	public void setDigraph(SparseIntDirectedWeightedGraph digraph) {
 		this.dataDigraph = digraph;
 		this.nO = digraph.vertexSet().size();
+		this.whichComponent = new int[nO];
 	}
 
 	/**
@@ -239,6 +246,30 @@ public class LinkageGraphBuilder {
 	}
 
 	/**
+	 * 
+	 * @param subGraph must have same vertex set as this.linkageGraph, and is
+	 * expected to be a subgraph of the latter.
+	 */
+	public void detectComponentsOf(SparseIntUndirectedWeightedGraph subGraph) {
+		ConnectivityInspector<Integer, Integer> inspector = new ConnectivityInspector(subGraph);
+		/*
+		 * Components which are not singletons
+		 */
+		List<Set<Integer>> componentsGT1 = inspector.connectedSets().stream().filter(c -> c.size() > 1).toList();
+
+		/*
+		 * Array points each vertex to its component number, or to -1 if it is a
+		 * singleton.
+		 */
+		Arrays.fill(this.whichComponent, -1); // singletons assigned to "-1" component
+		for (int c = 0; c < componentsGT1.size(); c++) {
+			for (Integer vertex : componentsGT1.get(c)) {
+				this.whichComponent[vertex.intValue()] = c;
+			}
+		}
+	}
+
+	/**
 	 * @return the mutual friends, i.e. mutual k-NN
 	 */
 	public List<UnorderedPair<Integer, Integer>> getMutualFriends() {
@@ -308,6 +339,13 @@ public class LinkageGraphBuilder {
 	 */
 	public int getNumberObjects() {
 		return nO;
+	}
+
+	/**
+	 * @return the whichComponent
+	 */
+	public int[] getWhichComponent() {
+		return whichComponent;
 	}
 
 }

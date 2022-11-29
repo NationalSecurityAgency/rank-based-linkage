@@ -121,23 +121,29 @@ public class ClusteringByInsway {
 	 *             <p>
 	 *             args[2] is integer k to count # nearest neighbors (e.g.8)
 	 *             <p>
-	 *             args[3] MAY BE OMITTED! integer referring to user-preferred
-	 *             maximum cluster size (e.g. 100). This will determine in-sway
-	 *             threshold for graph components. If omitted, the subcritical
-	 *             clustering will be returned.
+	 *             Also optional run-time property -maxCluster: integer referring to
+	 *             user-preferred maximum cluster size (e.g. 100). This will
+	 *             determine in-sway threshold for graph components. If omitted, the
+	 *             subcritical clustering will be returned.
 	 */
 	public static void main(String[] args) {
 		String fileName = args[0];
 		String modifiers = args[1];
+		String clusterSizeLimit = System.getProperty("maxCluster");
 		if (!inputGraphOptions.contains(modifiers)) {
 			throw new IllegalArgumentException("Third argument must be one of: " + " Dh," + " Dl," + " Uh," + " Ul.");
 		} else {
 			boolean isDirected = modifiers.startsWith(new String("D")) ? true : false;
 			boolean higherBetter = modifiers.endsWith(new String("h")) ? true : false;
 			int k = Integer.parseInt(args[2]); // # neighbors
+			if (args.length != 3) {
+				throw new RuntimeException("User must provide three arguments - "
+						+ " (1) input file/directory, (2) one of the modifiers Dh, Dl, Uh, Ul,"
+						+ "and (3) # nearest neighbors K");
+			}
 			OptionalInt maxClusterSize = OptionalInt.empty();
-			if (args.length > 3) {
-				maxClusterSize = OptionalInt.of(Integer.parseInt(args[3]));
+			if (clusterSizeLimit != null) {
+				maxClusterSize = OptionalInt.of(Integer.parseInt(clusterSizeLimit));
 			}
 			StringPairCSVReader reader = new StringPairCSVReader();
 			reader.readStringPairsWithWeights(fileName);
@@ -148,12 +154,16 @@ public class ClusteringByInsway {
 			GlobalLog.log(Level.INFO, "Input file " + fileName + ", size: " + nEdges + "; directed edges? " + isDirected
 					+ "; higher edge weights mean more similar? " + higherBetter);
 			GlobalLog.log(Level.INFO, k + " nearest neighbors will be used; maximum cluster size " + maxClusterSize);
+			GlobalLog.log(Level.INFO,"Java runtime version: " + System.getProperty("java.runtime.version" ));
 			/*
 			 * Prepare the k-NN digraph
 			 */
 			rbl.prepareNNDigraph();
 			rbl.buildLinkageGraph();
-			// TODO (1) clustering (2) export
+			/*
+			 * If -maxCluster argument was not set, export edges of the sub-critical graph,
+			 * each tagged with a component number.
+			 */
 		}
 	}
 
@@ -179,27 +189,7 @@ public class ClusteringByInsway {
 		this.lgb.buildLinkageGraph();
 	}
 
-	private void buildSubcriticalClusters() {
-		this.lgb.buildSubCriticalGraph();
-		ConnectivityInspector<Integer, Integer> inspector = new ConnectivityInspector(this.lgb.getSubCriticalGraph());
-		/*
-		 * Components which are not singletons
-		 */
-		List<Set<Integer>> componentsGT1 = inspector.connectedSets().stream().filter(c -> c.size() > 1).toList();
-		int n = this.knnDigraph.vertexSet().size();
-		/*
-		 * Create int[n] array which maps each vertex to its component number,
-		 * or to -1 if it is a singleton.
-		 */
-		int[] whichComponent = new int[n];
-		Arrays.fill(whichComponent, -1); // singletons assigned to "-1" component
-		for(int c = 0; c < componentsGT1.size(); c++) {
-			for(Integer vertex : componentsGT1.get(c)) {
-				whichComponent[vertex.intValue()] = c;
-			}
-		}
 
-	}
 
 	private void buildClustersNotBiggerThan(int mx) {
 		// TODO Union Find
