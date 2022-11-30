@@ -3,8 +3,10 @@
  */
 package algorithmTests;
 
+import java.util.Arrays;
 import java.util.DoubleSummaryStatistics;
 import java.util.logging.Level;
+import java.util.stream.IntStream;
 
 import algorithms.LinkageGraphBuilder;
 import logging.GlobalLog;
@@ -84,7 +86,7 @@ public class TestLinkageGraphBuilder {
 		GlobalLog.log(Level.INFO, "Count links with given in-sway: ");
 		for (int j = test.lgb.getMaxInsway(); j >= 0; j--) {
 			GlobalLog.log(Level.INFO,
-					"# links with in-sway exactly " + j + ": " + test.lgb.getLinkCounByInswayValue()[j]
+					"# links with in-sway exactly " + j + ": " + test.lgb.getLinkCountByInswayValue()[j]
 							+ "; # links with in-sway GREATER than " + j + ": "
 							+ test.lgb.getLinkCountAboveInswayValue()[j]);
 		}
@@ -100,6 +102,14 @@ public class TestLinkageGraphBuilder {
 		 */
 		test.lgb.detectComponentsOf(test.lgb.getSubCriticalGraph());
 		/*
+		 * Check that component array makes sense
+		 */
+		long numberCompsGT1 = Arrays.stream(test.lgb.getWhichComponent()).distinct().count();
+		GlobalLog.log(Level.INFO,"Number of components of size greater than one: " + numberCompsGT1);
+		long numberIsol = IntStream.range(0, test.lgb.getNumberObjects())
+				.filter(i->test.lgb.getIsIsolatedObject()[i]).count();
+		GlobalLog.log(Level.INFO,"Number of vertex objects marked as isolated: "+ numberIsol);
+		/*
 		 * Critical graph
 		 */
 		test.lgb.buildCriticalGraph();
@@ -107,15 +117,22 @@ public class TestLinkageGraphBuilder {
 		GlobalLog.log(Level.INFO, "Critical graph has " + nCritEdges + " edges.");
 
 		/*
-		 * Export subcritical linkage graphs to a directory
+		 * Export (1) subcritical linkage graph and (2) singleton vertices to a
+		 * directory
 		 */
 		test.lgWriter.setObjectStringLookup(test.d2nndg.getObjectStringLookup());
 		String prefix = "RBL-" + test.lgb.getNumberObjects() + "-objects-";
 		String dirName = prefix + inSwayStatistics.getCount() + "-links-" + k + "-NN-" + System.currentTimeMillis();
-		//String fileNameCrit = prefix + k + "-NN-critical-" + nCritEdges + ".csv";
-		String fileNameSubC = prefix + k + "-NN-subcritical" + nSubcEdges + ".csv";
-		test.lgWriter.writeEdgesToFile(dirName, fileNameSubC, test.lgb.getSubCriticalGraph(), test.lgb.getWhichComponent());
+		String fileNameSubC = nSubcEdges + "-subcritical-edges.csv";
+		test.lgWriter.writeEdgesToFile(dirName, fileNameSubC, test.lgb.getSubCriticalGraph(),
+				test.lgb.getWhichComponent());
 		GlobalLog.log(Level.INFO, "Subcritical graph notated with components has been written to file " + fileNameSubC);
+		String fileNameVert = test.lgb.getNumSingletons() + "-singletons-among-" + test.lgb.getNumberObjects()
+				+ "-objects.csv";
+		test.lgWriter.writeSingletonVerticesToFile(dirName, fileNameVert, test.lgb.getLinkageGraph(),
+				test.lgb.getIsIsolatedObject());
+
+		GlobalLog.log(Level.INFO, "Singleton objects have been written to file " + fileNameVert);
 	}
 
 }

@@ -16,7 +16,6 @@ import java.util.logging.Level;
 
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVPrinter;
-import org.jgrapht.graph.AbstractGraph;
 import org.jgrapht.opt.graph.sparse.SparseIntUndirectedWeightedGraph;
 
 import logging.GlobalLog;
@@ -80,25 +79,25 @@ public class LinkageGraphCSVWriter {
 	 * @param whichComponent       returns -1 if vertex v is isolated. Only such
 	 *                             vertices are written to file.
 	 */
-	public void writeSingletonVerticesToFile(String directory, String singleVertexFileName, int[] whichComponent) {
+	public void writeSingletonVerticesToFile(String directory, String singleVertexFileName, 
+			SparseIntUndirectedWeightedGraph linkageGraph, boolean[] isIsolated) {
 		GlobalLog.log(Level.INFO, "Writing isolated vertices to file, one per line, to file " + singleVertexFileName);
 		try {
 			this.createFolder(directory);
 			BufferedWriter cgwriterV = Files.newBufferedWriter(Paths.get(directory, singleVertexFileName));
 			CSVPrinter csvprinterV = new CSVPrinter(cgwriterV, CSVFormat.DEFAULT);
 			csvprinterV.printRecord("isolated vertex");
-
-			for (int v = 0; v < whichComponent.length; v++) {
-				if (whichComponent[v] == -1) {
-					csvprinterV.printRecord(this.objectStringLookup.get(v));
-				}
-				csvprinterV.close();
+			for (Integer vertex : linkageGraph.vertexSet()) {
+				if (isIsolated[vertex.intValue()]) {
+					csvprinterV.printRecord(this.objectStringLookup.get(vertex));
+				}			
 			}
+			csvprinterV.close();
 
 		} catch (
 
 		IOException e) {
-			System.err.println("Caught IOException when writing edges.");
+			System.err.println("Caught IOException when writing singletons.");
 		}
 
 	}
