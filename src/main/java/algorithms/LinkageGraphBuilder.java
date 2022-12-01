@@ -4,6 +4,7 @@
 package algorithms;
 
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -40,11 +41,13 @@ import logging.GlobalLog;
  * Computation of ranks is unnecessary; just compare neighbors of vertex v
  * according to weight of outgoing edges from v.
  * <p>
+ * Detects minimum in-sway t so no component of L_t has size more than a given
+ * m. Here L_t are links with in-sway at least t. Also exports edges of this
+ * graph, marked by component.
+ * <p>
  * Tested via {@link test.algorithmTests.TestLinkageGraphBuilder} on variety of
  * directed graphs.
  * <p>
- * TODO Detect minimum in-sway t so no component of L_t has size more than a
- * given m. Here L_t are links on in-sway at least t.
  * 
  * @author <a href="https://github.com/probabilist-us">R. W. R. Darling</a>
  *
@@ -56,7 +59,8 @@ public class LinkageGraphBuilder {
 	private int maxInsway, criticalInsway; // See getters for meaning
 	private final boolean higherWeightMoreSimilar;
 	private List<UnorderedPair<Integer, Integer>> mutualFriends;
-	private SparseIntUndirectedWeightedGraph linkageGraph, criticalGraph, subCriticalGraph;// See getters for meaning
+	private SparseIntUndirectedWeightedGraph linkageGraph, modestLinkageGraph, subCriticalGraph;// See getters for
+																								// meaning
 	private int[] whichComponent; // used when writing edges of subcritical graph to file
 	private boolean[] isIsolatedObject;
 	private IntFunction<Triple<Integer, Integer, Double>> pickEdge;
@@ -65,9 +69,14 @@ public class LinkageGraphBuilder {
 	 */
 	private int[] linkCountByInswayValue, linkCountAboveInswayValue;
 	/*
-	 * Not sure if this map is useful or necessary
+	 * Needed for Union Find
 	 */
 	private Map<Integer, List<Integer>> linksGroupedByInsway;
+	/*
+	 * In the linkags graph containing links of ins-sway at least k, what is the
+	 * size of the largest component?
+	 */
+	private Map<Integer, Integer> maxComponentSizeByInsway;
 
 	/**
 	 * 
@@ -78,12 +87,21 @@ public class LinkageGraphBuilder {
 	public LinkageGraphBuilder(boolean higherWeightMoreSimilar) {
 		GlobalLog.log(Level.INFO, "Instance of " + LinkageGraphBuilder.class.getName());
 		this.higherWeightMoreSimilar = higherWeightMoreSimilar;
-
+		this.maxComponentSizeByInsway = new HashMap<>();
 	}
 
+	/**
+	 * Chooses digraph, and initializes vertex- dependent arrays.
+	 * 
+	 * @param digraph used as a representative of out-ordered digraph equivalence
+	 *                class,
+	 */
 	public void setDigraph(SparseIntDirectedWeightedGraph digraph) {
 		this.dataDigraph = digraph;
 		this.nO = digraph.vertexSet().size();
+		this.numSingletons = this.nO;
+		this.whichComponent = new int[nO];
+		this.isIsolatedObject = new boolean[nO];
 	}
 
 	/**
@@ -219,27 +237,55 @@ public class LinkageGraphBuilder {
 	 *         whose largest connected component is not more than m
 	 */
 	public int unionFindUpToClusterThreshold(int m) {
-		UnionFind<Integer> clusters = new UnionFind<>(this.linkageGraph.vertexSet());
+		UnionFind<Integer> uf = new UnionFind<>(this.linkageGraph.vertexSet());
 		int maxSize = 1;
-		int inSway = this.maxInsway;
-		while (maxSize < m + 1) {
-			/*
-			 * Declare all pairs of mutual friends with this in=sway value to be in same
-			 * component.
-			 */
-			for (Integer edge : this.linksGroupedByInsway.get(inSway)) {
-				clusters.union(this.linkageGraph.getEdgeSource(edge), this.linkageGraph.getEdgeTarget(edge));
-			}
-
+		int inSway = this.maxInsway + 1;
+		this.maxComponentSizeByInsway.put(inSway, maxSize);
+		while (maxSize < m + 1 && inSway > 0) {
 			inSway--;
+			/*
+			 * Declare all pairs of mutual friends with this in-sway value to be in same
+			 * component. NULL POINTER EXCEPTION!
+			 */
+			if (this.linksGroupedByInsway.containsKey(inSway)) {
+				for (Integer edge : this.linksGroupedByInsway.get(inSway)) {
+					uf.union(this.linkageGraph.getEdgeSource(edge), this.linkageGraph.getEdgeTarget(edge));
+				}
+			}
+			/*
+			 * Maximum cluster size after inserting links of this in-sway value and greater
+			 */
+			maxSize = this.linkageGraph.vertexSet().stream().collect(Collectors.groupingBy(s -> uf.find(s))).values()
+					.stream().mapToInt(c -> c.size()).max().orElse(1);
+			this.maxComponentSizeByInsway.put(inSway, maxSize);
 		}
+		GlobalLog.log(Level.INFO,
+				"Including all links with in-sway at least " + inSway + " gives maximum component size = " + maxSize);
+		GlobalLog.log(Level.INFO, "Including all links at least " + (inSway + 1) + " gives maximum component size = "
+				+ this.maxComponentSizeByInsway.get(inSway + 1));
+		return (inSway + 1);
+	}
 
-		return 1;
+	/**
+	 * Usually call {@link unionFindUpToClusterThreshold} method first.
+	 * 
+	 * @param inSwayLevel is minimum value of in-sway for links in the
+	 *                    modestLinkageGraph.
+	 */
+	public void buildGraphInswayNotLessThan(int inSwayLevel) {
+		/*
+		 * List of indices of links whose in-sway is not less than the critical in-sway.
+		 */
+		List<Integer> criticalEdges = this.linksGroupedByInsway.entrySet().stream()
+				.filter(s -> s.getKey().compareTo(inSwayLevel) >= 0).flatMap(s -> s.getValue().stream()).parallel()
+				.toList();
+		this.modestLinkageGraph = new SparseIntUndirectedWeightedGraph(this.nO,
+				criticalEdges.parallelStream().map(pickEdge::apply).toList());
 	}
 
 	/**
 	 * Call {@link buildLinkageGraph} first. Restrict linkage graph to edges whose
-	 * in-sway exceeds critical value [SUBCRITICAL]
+	 * in-sway exceeds critical value, i.e. fewer links than object.
 	 */
 	public void buildSubCriticalGraph() {
 		/*
@@ -253,43 +299,25 @@ public class LinkageGraphBuilder {
 	}
 
 	/**
-	 * Call {@link buildLinkageGraph} first. Restrict linkage graph to edges whose
-	 * in-sway is not less than critical value [CRITICAL].
-	 */
-	public void buildCriticalGraph() {
-		/*
-		 * List of indices of links whose in-sway is not less than the critical in-sway.
-		 */
-		List<Integer> criticalEdges = this.linksGroupedByInsway.entrySet().stream()
-				.filter(s -> s.getKey().compareTo(this.criticalInsway) >= 0).flatMap(s -> s.getValue().stream())
-				.parallel().toList();
-		this.criticalGraph = new SparseIntUndirectedWeightedGraph(this.nO,
-				criticalEdges.parallelStream().map(pickEdge::apply).toList());
-	}
-
-	/**
-	 * Call {@link buildLinkageGraph} first.
+	 * Call {@link buildLinkageGraph} first. Can be called more than once, for
+	 * different subgraphs.
 	 * 
 	 * @param subGraph must have same vertex set as this.linkageGraph, and is
 	 *                 expected to be a subgraph of the latter.
+	 * @return size of largest component.
 	 */
-	public void detectComponentsOf(SparseIntUndirectedWeightedGraph subGraph) {
+	public int detectComponentsOf(SparseIntUndirectedWeightedGraph subGraph) {
 		ConnectivityInspector<Integer, Integer> inspector = new ConnectivityInspector<>(subGraph);
 		/*
 		 * Components which are not singletons
 		 */
 		List<Set<Integer>> componentsGT1 = inspector.connectedSets().stream().filter(c -> c.size() > 1).toList();
+		int maxComponentSize = componentsGT1.stream().mapToInt(c -> c.size()).max().orElse(1);
 		GlobalLog.log(Level.INFO,
 				"Graph components detected: " + componentsGT1.size() + " components of size two or more.");
-		/*
-		 * Array points each vertex to its component number, or to -1 if it is a
-		 * singleton.
-		 */
-		this.numSingletons = this.nO;
-		this.whichComponent = new int[nO];
-		this.isIsolatedObject = new boolean[nO];
 
-		Arrays.fill(this.isIsolatedObject, true);
+		Arrays.fill(this.isIsolatedObject, true); // switch to false for each non-singleton
+		this.numSingletons = this.nO; // deduct one for each non-singleton
 		for (int c = 0; c < componentsGT1.size(); c++) {
 			for (Integer vertex : componentsGT1.get(c)) {
 				this.whichComponent[vertex.intValue()] = c;
@@ -297,6 +325,7 @@ public class LinkageGraphBuilder {
 				this.isIsolatedObject[vertex.intValue()] = false;
 			}
 		}
+		return maxComponentSize;
 	}
 
 	/**
@@ -351,13 +380,8 @@ public class LinkageGraphBuilder {
 	}
 
 	/**
-	 * @return the criticalGraph
-	 */
-	public SparseIntUndirectedWeightedGraph getCriticalGraph() {
-		return criticalGraph;
-	}
-
-	/**
+	 * Call {@link buildSubCriticalGraph} method first.
+	 * 
 	 * @return the subCriticalGraph
 	 */
 	public SparseIntUndirectedWeightedGraph getSubCriticalGraph() {
@@ -372,6 +396,8 @@ public class LinkageGraphBuilder {
 	}
 
 	/**
+	 * Must call {@link detectComponentsOf} method first.
+	 * 
 	 * @return which component each vertex belongs to, where minus 1 refers to
 	 *         singletons
 	 */
@@ -380,6 +406,8 @@ public class LinkageGraphBuilder {
 	}
 
 	/**
+	 * Must call {@link detectComponentsOf} method first.
+	 * 
 	 * @return count isolated objects after connected components
 	 */
 	public int getNumSingletons() {
@@ -387,6 +415,8 @@ public class LinkageGraphBuilder {
 	}
 
 	/**
+	 * Must call {@link detectComponentsOf} method first.
+	 * 
 	 * @return the isIsolatedObject
 	 */
 	public boolean[] getIsIsolatedObject() {
@@ -394,32 +424,25 @@ public class LinkageGraphBuilder {
 	}
 
 	/**
-	 * Call {@link buildLinkageGraph} first.
+	 * Call {@link buildGraphInswayNotLessThan} method first.
 	 * 
-	 * @deprecated
-	 * @param m maximum acceptable size of a cluster
-	 * @return minimum value of t so that links with in-sway at least t form a graph
-	 *         whose largest connected component is not more than m
+	 * @return the modest Linkage Graph, namely a linkage graph excluding links of
+	 *         in-sway less than user-specified value, as in
 	 */
-	/*
-	 * public int inswayThresholdForClustersNoBiggerThan(int m) {
+	public SparseIntUndirectedWeightedGraph getModestLinkageGraph() {
+		return modestLinkageGraph;
+	}
+
+	/**
+	 * Must call {@link unionFindUpToClusterThreshold} method first.
 	 * 
-	 * A graph with m-1 or fewer edges has no component of size exceeding m.
+	 * @return map whose key is an integer value of in-sway, and whose value is the
+	 *         maximum component size in linkage graph including links of in-sway at
+	 *         least key.
 	 * 
-	 * int t = this.maxInsway; while (this.linkCountAboveInswayValue[t] < m) { t--;
-	 * }
-	 * 
-	 * On exit from this loop, there are m or more links of in-sway greater than t,
-	 * but this t is minimal. So increase it by 1.
-	 * 
-	 * final int startValue = t + 1; List<Integer> edgeList =
-	 * this.linksGroupedByInsway.entrySet().stream() .filter(s ->
-	 * s.getKey().compareTo(startValue) > 0).flatMap(s ->
-	 * s.getValue().stream()).parallel() .toList();
-	 * 
-	 * Better to use mutable graph here?
-	 * 
-	 * return 0; }
 	 */
+	public Map<Integer, Integer> getMaxComponentSizeByInsway() {
+		return maxComponentSizeByInsway;
+	}
 
 }

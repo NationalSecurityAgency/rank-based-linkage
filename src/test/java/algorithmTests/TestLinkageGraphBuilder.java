@@ -5,6 +5,7 @@ package algorithmTests;
 
 import java.util.Arrays;
 import java.util.DoubleSummaryStatistics;
+import java.util.Map;
 import java.util.logging.Level;
 import java.util.stream.IntStream;
 
@@ -100,39 +101,50 @@ public class TestLinkageGraphBuilder {
 		/*
 		 * Subcritical components
 		 */
-		test.lgb.detectComponentsOf(test.lgb.getSubCriticalGraph());
+		int maxSubCritComponentSize = test.lgb.detectComponentsOf(test.lgb.getSubCriticalGraph());
 		/*
 		 * Check that component array makes sense
 		 */
 		long numberCompsGT1 = Arrays.stream(test.lgb.getWhichComponent()).distinct().count();
-		GlobalLog.log(Level.INFO,"Number of components of size greater than one: " + numberCompsGT1);
-		long numberIsol = IntStream.range(0, test.lgb.getNumberObjects())
-				.filter(i->test.lgb.getIsIsolatedObject()[i]).count();
-		GlobalLog.log(Level.INFO,"Number of vertex objects marked as isolated: "+ numberIsol);
+		GlobalLog.log(Level.INFO, "In sub-critical graph, max Component Size is " + maxSubCritComponentSize);
+		GlobalLog.log(Level.INFO, "Number of components of size greater than one: " + numberCompsGT1);
+		long numberIsol = IntStream.range(0, test.lgb.getNumberObjects()).filter(i -> test.lgb.getIsIsolatedObject()[i])
+				.count();
+		GlobalLog.log(Level.INFO, "Number of vertex objects marked as isolated: " + numberIsol);
 		/*
-		 * Critical graph
+		 * Set a component size limit, and export modest graph
 		 */
-		test.lgb.buildCriticalGraph();
-		int nCritEdges = test.lgb.getCriticalGraph().edgeSet().size();
-		GlobalLog.log(Level.INFO, "Critical graph has " + nCritEdges + " edges.");
-
+		int componentSizeMax = 30;
+		int inSwayLB = test.lgb.unionFindUpToClusterThreshold(componentSizeMax);
+		GlobalLog.log(Level.INFO, "How max component size varies with lower bound on in-sway:");
+		for (Map.Entry<Integer, Integer> kv : test.lgb.getMaxComponentSizeByInsway().entrySet()) {
+			GlobalLog.log(Level.INFO, "Insway at least " + kv.getKey() + ": max component size " + kv.getValue());
+		}
 		/*
-		 * Export (1) subcritical linkage graph and (2) singleton vertices to a
-		 * directory
+		 * Build modest graph for this component size bound, and find components
+		 */
+		test.lgb.buildGraphInswayNotLessThan(inSwayLB);
+		int modestEdgeCount = test.lgb.getModestLinkageGraph().edgeSet().size();
+		GlobalLog.log(Level.INFO,
+				"Modest graph with lower bound " + inSwayLB + " on in-sway has " + modestEdgeCount + " edges.");
+		int maxModestComponentSize = test.lgb.detectComponentsOf(test.lgb.getModestLinkageGraph());
+		GlobalLog.log(Level.INFO, "In modest graph, max Component Size is " + maxModestComponentSize);
+		/*
+		 * Export (1) modest linkage graph and (2) singleton vertices to a directory
 		 */
 		test.lgWriter.setObjectStringLookup(test.d2nndg.getObjectStringLookup());
-		String prefix = "RBL-" + test.lgb.getNumberObjects() + "-objects-";
-		String dirName = prefix + inSwayStatistics.getCount() + "-links-" + k + "-NN-" + System.currentTimeMillis();
-		String fileNameSubC = nSubcEdges + "-subcritical-edges.csv";
-		test.lgWriter.writeEdgesToFile(dirName, fileNameSubC, test.lgb.getSubCriticalGraph(),
+		String prefix = "RBL-" + test.lgb.getNumberObjects() + "-objects-component-size-bound-"
+				+ maxModestComponentSize;
+		String dirName = prefix + modestEdgeCount + "-links-" + k + "-NN-" + System.currentTimeMillis();
+		String fileNameEdges = modestEdgeCount + "-modest-edges.csv";
+		test.lgWriter.writeEdgesToFile(dirName, fileNameEdges, test.lgb.getModestLinkageGraph(),
 				test.lgb.getWhichComponent());
-		GlobalLog.log(Level.INFO, "Subcritical graph notated with components has been written to file " + fileNameSubC);
+		GlobalLog.log(Level.INFO, "Modest graph notated with components has been written to file " + fileNameEdges);
 		String fileNameVert = test.lgb.getNumSingletons() + "-singletons-among-" + test.lgb.getNumberObjects()
 				+ "-objects.csv";
 		test.lgWriter.writeSingletonVerticesToFile(dirName, fileNameVert, test.lgb.getLinkageGraph(),
 				test.lgb.getIsIsolatedObject());
-
-		GlobalLog.log(Level.INFO, "Singleton objects have been written to file " + fileNameVert);
+		GlobalLog.log(Level.INFO, "Singleton objects in modest graph have been written to file " + fileNameVert);
 	}
 
 }
