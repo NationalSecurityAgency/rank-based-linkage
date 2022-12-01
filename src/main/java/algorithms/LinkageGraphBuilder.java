@@ -13,6 +13,7 @@ import java.util.stream.Collectors;
 
 import org.jgrapht.alg.connectivity.ConnectivityInspector;
 import org.jgrapht.alg.util.Triple;
+import org.jgrapht.alg.util.UnionFind;
 import org.jgrapht.alg.util.UnorderedPair;
 import org.jgrapht.opt.graph.sparse.SparseIntDirectedWeightedGraph;
 import org.jgrapht.opt.graph.sparse.SparseIntUndirectedWeightedGraph;
@@ -67,6 +68,7 @@ public class LinkageGraphBuilder {
 	 * Not sure if this map is useful or necessary
 	 */
 	private Map<Integer, List<Integer>> linksGroupedByInsway;
+
 	/**
 	 * 
 	 * @param higherWeightMoreSimilar true if the higher of two weights of outgoing
@@ -139,7 +141,7 @@ public class LinkageGraphBuilder {
 		yVertices.addAll(this.dataDigraph.incomingEdgesOf(z).stream().map(e -> this.dataDigraph.getEdgeSource(e))
 				.collect(Collectors.toSet()));
 		/*
-		 * Count y with {x, y} intersecting Gamma(y), s.t. xz is source of 2-simplex
+		 * Count y with {x, z} intersecting Gamma(y), s.t. xz is source of 2-simplex
 		 * {xz, xy, yz}.
 		 */
 		long sourceCount = yVertices.stream().filter(y -> this.xzIsSource(x, z, y)).count();
@@ -211,32 +213,28 @@ public class LinkageGraphBuilder {
 	}
 
 	/**
-	 * Call {@link buildLinkageGraph} first.
 	 * 
 	 * @param m maximum acceptable size of a cluster
 	 * @return minimum value of t so that links with in-sway at least t form a graph
 	 *         whose largest connected component is not more than m
 	 */
-	public int inswayThresholdForClustersNoBiggerThan(int m) {
-		/*
-		 * A graph with m-1 or fewer edges has no component of size exceeding m.
-		 */
-		int t = this.maxInsway;
-		while(this.linkCountAboveInswayValue[t] < m) {
-			t--;
+	public int unionFindUpToClusterThreshold(int m) {
+		UnionFind<Integer> clusters = new UnionFind<>(this.linkageGraph.vertexSet());
+		int maxSize = 1;
+		int inSway = this.maxInsway;
+		while (maxSize < m + 1) {
+			/*
+			 * Declare all pairs of mutual friends with this in=sway value to be in same
+			 * component.
+			 */
+			for (Integer edge : this.linksGroupedByInsway.get(inSway)) {
+				clusters.union(this.linkageGraph.getEdgeSource(edge), this.linkageGraph.getEdgeTarget(edge));
+			}
+
+			inSway--;
 		}
-		/*
-		 * On exit from this loop, there are m or more links of in-sway greater than t,
-		 * but this t is minimal. So increase it by 1.
-		 */
-		final int startValue = t+1;
-		List<Integer> edgeList = this.linksGroupedByInsway.entrySet().stream()
-				.filter(s -> s.getKey().compareTo(startValue) > 0).flatMap(s -> s.getValue().stream())
-				.parallel().toList();
-		/*
-		 * Better to use mutable graph here?
-		 */
-		return 0;
+
+		return 1;
 	}
 
 	/**
@@ -394,5 +392,34 @@ public class LinkageGraphBuilder {
 	public boolean[] getIsIsolatedObject() {
 		return isIsolatedObject;
 	}
+
+	/**
+	 * Call {@link buildLinkageGraph} first.
+	 * 
+	 * @deprecated
+	 * @param m maximum acceptable size of a cluster
+	 * @return minimum value of t so that links with in-sway at least t form a graph
+	 *         whose largest connected component is not more than m
+	 */
+	/*
+	 * public int inswayThresholdForClustersNoBiggerThan(int m) {
+	 * 
+	 * A graph with m-1 or fewer edges has no component of size exceeding m.
+	 * 
+	 * int t = this.maxInsway; while (this.linkCountAboveInswayValue[t] < m) { t--;
+	 * }
+	 * 
+	 * On exit from this loop, there are m or more links of in-sway greater than t,
+	 * but this t is minimal. So increase it by 1.
+	 * 
+	 * final int startValue = t + 1; List<Integer> edgeList =
+	 * this.linksGroupedByInsway.entrySet().stream() .filter(s ->
+	 * s.getKey().compareTo(startValue) > 0).flatMap(s ->
+	 * s.getValue().stream()).parallel() .toList();
+	 * 
+	 * Better to use mutable graph here?
+	 * 
+	 * return 0; }
+	 */
 
 }
