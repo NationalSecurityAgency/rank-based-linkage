@@ -124,20 +124,20 @@ public class TestLinkageGraphBuilder {
 		 * Build modest graph for this component size bound, and find components
 		 */
 		test.lgb.buildGraphInswayNotLessThan(inSwayLB);
-		int modestEdgeCount = test.lgb.getModestLinkageGraph().edgeSet().size();
+		int modestEdgeCount = test.lgb.getLinkageSubgraph().edgeSet().size();
 		GlobalLog.log(Level.INFO,
 				"Modest graph with lower bound " + inSwayLB + " on in-sway has " + modestEdgeCount + " edges.");
-		int maxModestComponentSize = test.lgb.detectComponentsOf(test.lgb.getModestLinkageGraph());
+		int maxModestComponentSize = test.lgb.detectComponentsOf(test.lgb.getLinkageSubgraph());
 		GlobalLog.log(Level.INFO, "In modest graph, max Component Size is " + maxModestComponentSize);
 		/*
 		 * Export (1) modest linkage graph and (2) singleton vertices to a directory
 		 */
 		test.lgWriter.setObjectStringLookup(test.d2nndg.getObjectStringLookup());
 		String prefix = "RBL-" + test.lgb.getNumberObjects() + "-objects-component-size-bound-"
-				+ maxModestComponentSize;
+				+ maxModestComponentSize + "-";
 		String dirName = prefix + modestEdgeCount + "-links-" + k + "-NN-" + System.currentTimeMillis();
 		String fileNameEdges = modestEdgeCount + "-modest-edges.csv";
-		test.lgWriter.writeEdgesToFile(dirName, fileNameEdges, test.lgb.getModestLinkageGraph(),
+		test.lgWriter.writeEdgesToFile(dirName, fileNameEdges, test.lgb.getLinkageSubgraph(),
 				test.lgb.getWhichComponent());
 		GlobalLog.log(Level.INFO, "Modest graph notated with components has been written to file " + fileNameEdges);
 		String fileNameVert = test.lgb.getNumSingletons() + "-singletons-among-" + test.lgb.getNumberObjects()

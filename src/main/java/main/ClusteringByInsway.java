@@ -3,34 +3,40 @@
  */
 package main;
 
-import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
 import java.util.OptionalInt;
 import java.util.Set;
 import java.util.logging.Level;
 
-import org.jgrapht.alg.connectivity.ConnectivityInspector;
 import org.jgrapht.opt.graph.sparse.SparseIntDirectedWeightedGraph;
 
 import algorithms.LinkageGraphBuilder;
 import logging.GlobalLog;
 import orientationStructures.DirectedToNNDigraph;
 import orientationStructures.UndirectedToNNDigraph;
+import readWrite.LinkageGraphCSVWriter;
 import readWrite.StringPairCSVReader;
 import readWrite.StringPairWithWeight;
 
 /**
- * REVISE! TODO In this version, input can be either
+ * Input can be either
  * <p>
- * &bull; [Command line option -Dh or -Dl] Directed graph D with edge weights,
+ * &bull; [Command line option Dh or Dl] Directed graph D with edge weights,
  * supplied as multiple lines of form (String source, String target, Double
  * weight). Dh (RESP. Dl) means higher (RESP. lower) weight means more similar;
  * or
  * <p>
- * &bull; [Command line option -Uh or -Ul] Undirected edge-weighted graph U in
+ * &bull; [Command line option Uh or Ul] Undirected edge-weighted graph U in
  * this format. Uh (RESP. Ul) means higher (RESP. lower) weight means more
  * similar.
+ * <p>
+ * &bull; [Compulsory command line argument K &ge2;] (such as 8) for number of
+ * near neighbors of each object to include.
+ * <p>
+ * &bull; [Optional runtime property "-maxCluster m"] (such as 30) produces a
+ * linkage subgraph where the in-sway threshold is as low as possible such that
+ * no component of the subgraph contains more than m objects. If this argument
+ * is omitted, the sub-critical linkage graph is produced.
  * <p>
  * Step I: extract the 2-core of U, or of the undirected form of D, as
  * appropriate. After that, every object has total degree at least two in either
@@ -49,38 +55,37 @@ import readWrite.StringPairWithWeight;
  * &bull; <i>Rank-based linkage I: triplet comparisons and oriented simplicial
  * complexes</i>, Darling, Grilliette and Logan, 2022
  * <p>
- * this data supplies an orientation of the line graph of an undirected
+ * This data supplies an orientation of the line graph of an undirected
  * K-nearest neighbor graph on a set S of n objects.
  * <p>
- * The present JAVA API creates the edge-weighted linkage graph (S, B, sigma).
- * Here B consists of pairs of mutual friends, and sigma is the in-sway. As t
+ * The present JAVA API creates the edge-weighted linkage graph (S, L, sigma).
+ * Here L consists of pairs of mutual friends, and sigma is the in-sway. As t
  * varies, the graph components for edges with in-sway at least t supplies a
  * partition of S. This is rank-based linkage hierarchical clustering. The
  * critical value of t is the smallest t such that the number of links whose
- * in-sway exceeds t is less than the number of objects. The subcritical
+ * in-sway exceeds t is less than the number of objects. The sub-critical
  * clustering uses links whose in-sway exceeds the critical value.
  * <p>
- * Three output files:
+ * Two output files:
  * <p>
- * &bull; CSV file for the linkage graph, whose lines are of form (String
- * source, String target, int in-sway)
+ * (1) CSV file where each line is an edge of the linkage subgraph, whose lines
+ * are of form
  * <p>
- * &bull; CSV file indicating the component of the subcritical linkage graph to
- * which each object belongs. Lines are of form (String object, int index),
- * where the index points to a component of the subcritical linkage graph. Lines
- * are lexicographically ordered by object.
+ * (int component #, String source, String target, int in-sway)
  * <p>
- * &bull; CSV file listing the objects in each numbered component of the
- * subcritical linkage graph. Lines are of form (int index, {String object1,
- * String object2, ...}) where {...} contains the objects in the component
- * associated with the index. Lines are ordered by index. Hence an object in
- * component j appears in the line indexed by j, and in no other line.
+ * Here components are computed with respect to edges in the subgraph, and
+ * numbers are 0, 1, 2, &hellip;
+ * <p>
+ * (2) CSV file listing the isolated objects, i.e. those of degree zero in the
+ * linkage subgraph. One String per line.
  * 
  * @author <a href="https://github.com/probabilist-us">R. W. R. Darling</a>
  *
  */
 public class ClusteringByInsway {
+
 	private List<StringPairWithWeight> edgeRecords;
+	private List<String> objectStringLookup;
 	private final boolean higherWeightMoreSimilar;
 	private final boolean inputEdgesAreDirected;
 	private final int kNN;
@@ -89,10 +94,10 @@ public class ClusteringByInsway {
 	 * Allowed values of args[2]
 	 */
 	static final Set<String> inputGraphOptions = Set.of("Dh", "Dl", "Uh", "Ul");
-	private SparseIntDirectedWeightedGraph knnDigraph;
-	LinkageGraphBuilder lgb;
-	List<Set<String>> subcriticalComponents;
-	Map<String, Integer> objectToComponentMap;
+	private SparseIntDirectedWeightedGraph knnDigraph; // rank-based linkage is applied to this
+	private LinkageGraphBuilder lgb;// all the graph analytics happen here
+	private LinkageGraphCSVWriter lgWriter;
+	private int subgraphEdgeCount, subgraphMaxComponentSize;
 
 	/**
 	 * 
@@ -113,6 +118,9 @@ public class ClusteringByInsway {
 	}
 
 	/**
+	 * Example: "java -jar rbl.jar edgefileD.csv Dh 8 -maxCluster 50"
+	 * <p>
+	 * Example: "java -jar rbl.jar edgefileU.csv Ul 16"
 	 * 
 	 * @param args args[0] is input file name; format is .CSV, each line is: source,
 	 *             target, weight
@@ -121,10 +129,10 @@ public class ClusteringByInsway {
 	 *             <p>
 	 *             args[2] is integer k to count # nearest neighbors (e.g.8)
 	 *             <p>
-	 *             Also optional run-time property -maxCluster: integer referring to
+	 *             Optional run-time property -maxCluster: integer referring to
 	 *             user-preferred maximum cluster size (e.g. 100). This will
 	 *             determine in-sway threshold for graph components. If omitted, the
-	 *             subcritical clustering will be returned.
+	 *             sub-critical linkage graph and its components will be returned.
 	 */
 	public static void main(String[] args) {
 		String fileName = args[0];
@@ -154,16 +162,14 @@ public class ClusteringByInsway {
 			GlobalLog.log(Level.INFO, "Input file " + fileName + ", size: " + nEdges + "; directed edges? " + isDirected
 					+ "; higher edge weights mean more similar? " + higherBetter);
 			GlobalLog.log(Level.INFO, k + " nearest neighbors will be used; maximum cluster size " + maxClusterSize);
-			GlobalLog.log(Level.INFO,"Java runtime version: " + System.getProperty("java.runtime.version" ));
+			GlobalLog.log(Level.INFO, "Java runtime version: " + System.getProperty("java.runtime.version"));
 			/*
-			 * Prepare the k-NN digraph
+			 * All the work happens here
 			 */
-			rbl.prepareNNDigraph();
-			rbl.buildLinkageGraph();
-			/*
-			 * If -maxCluster argument was not set, export edges of the sub-critical graph,
-			 * each tagged with a component number.
-			 */
+			rbl.prepareNNDigraph();// prepare the k-NN digraph
+			rbl.buildLinkageGraph();// rank-based linkage algorithm
+			rbl.extractLinkageSubgraph(); // choose a subgraph, find it components
+			rbl.exportLinkageSubgraph(); // write subgraph to two files as above
 		}
 	}
 
@@ -174,12 +180,14 @@ public class ClusteringByInsway {
 			d2nndg.determineTwoCore();
 			d2nndg.buildKNearNbrDigraph(this.kNN);
 			this.knnDigraph = d2nndg.getKNNDigraph();
+			this.objectStringLookup = d2nndg.getObjectStringLookup();
 		} else {
 			UndirectedToNNDigraph u2nndg = new UndirectedToNNDigraph(this.higherWeightMoreSimilar);
 			u2nndg.buildRawSparseGraph(this.edgeRecords);
 			u2nndg.determineTwoCore();
 			u2nndg.buildKNearNbrDigraph(this.kNN);
 			this.knnDigraph = u2nndg.getKNNDigraph();
+			this.objectStringLookup = u2nndg.getObjectStringLookup();
 		}
 	}
 
@@ -189,22 +197,50 @@ public class ClusteringByInsway {
 		this.lgb.buildLinkageGraph();
 	}
 
-
-
-	private void buildClustersNotBiggerThan(int mx) {
-		// TODO Union Find
-
+	private void extractLinkageSubgraph() {
+		int inSwayLB;
+		/*
+		 * Case 1: a maximum cluster size has been set.
+		 */
+		if (this.maxCluster.isPresent()) {
+			/*
+			 * Determine in-sway lower bound for desired subgraph
+			 */
+			inSwayLB = this.lgb.unionFindUpToClusterThreshold(this.maxCluster.getAsInt());
+		}
+		/*
+		 * Case 2: default to lower bound which is critical in-sway plus 1
+		 */
+		else {
+			inSwayLB = this.lgb.getCriticalInsway() + 1;
+		}
+		/*
+		 * Build subgraph for this component size bound.
+		 */
+		this.lgb.buildGraphInswayNotLessThan(inSwayLB);
+		this.subgraphEdgeCount = this.lgb.getLinkageSubgraph().edgeSet().size();
+		GlobalLog.log(Level.INFO,
+				"Subgraph with lower bound " + inSwayLB + " on in-sway has " + subgraphEdgeCount + " edges.");
+		/*
+		 * Component structure of subgraph
+		 */
+		this.subgraphMaxComponentSize = this.lgb.detectComponentsOf(this.lgb.getLinkageSubgraph());
+		GlobalLog.log(Level.INFO, "In subgraph, max component size is " + subgraphMaxComponentSize);
 	}
 
-	/**
-	 * TODO Change design.
-	 * <p>
-	 * Need to tune the in-sway threshold to give desired max cluster size. Use
-	 * UnionFind in JGraphT.
-	 * <p>
-	 * Need (1) String to (int) component map, and (2) for each (int) component,
-	 * variable length list of members.
-	 * 
-	 */
-
+	private void exportLinkageSubgraph() {
+		this.lgWriter.setObjectStringLookup(this.objectStringLookup);
+		String prefix = "RBL-" + this.lgb.getNumberObjects() + "-objects-component-size-bound-"
+				+ this.subgraphMaxComponentSize + "-";
+		String dirName = prefix + this.subgraphEdgeCount + "-links-" + this.kNN + "-NN-" + System.currentTimeMillis();
+		String fileNameEdges = this.subgraphEdgeCount + "-modest-edges.csv";
+		this.lgWriter.writeEdgesToFile(dirName, fileNameEdges, this.lgb.getLinkageSubgraph(),
+				this.lgb.getWhichComponent());
+		GlobalLog.log(Level.INFO, "Modest graph notated with components has been written to file " + fileNameEdges);
+		String fileNameVert = this.lgb.getNumSingletons() + "-singletons-among-" + this.lgb.getNumberObjects()
+				+ "-objects.csv";
+		this.lgWriter.writeSingletonVerticesToFile(dirName, fileNameVert, this.lgb.getLinkageGraph(),
+				this.lgb.getIsIsolatedObject());
+		GlobalLog.log(Level.INFO, "Singleton objects in modest graph have been written to file " + fileNameVert);
+	}
 }

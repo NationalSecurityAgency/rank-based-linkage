@@ -59,7 +59,7 @@ public class LinkageGraphBuilder {
 	private int maxInsway, criticalInsway; // See getters for meaning
 	private final boolean higherWeightMoreSimilar;
 	private List<UnorderedPair<Integer, Integer>> mutualFriends;
-	private SparseIntUndirectedWeightedGraph linkageGraph, modestLinkageGraph, subCriticalGraph;// See getters for
+	private SparseIntUndirectedWeightedGraph linkageGraph, linkageSubgraph, subCriticalGraph;// See getters for
 																								// meaning
 	private int[] whichComponent; // used when writing edges of subcritical graph to file
 	private boolean[] isIsolatedObject;
@@ -269,17 +269,17 @@ public class LinkageGraphBuilder {
 	/**
 	 * Usually call {@link unionFindUpToClusterThreshold} method first.
 	 * 
-	 * @param inSwayLevel is minimum value of in-sway for links in the
-	 *                    modestLinkageGraph.
+	 * @param inSwayLowerBound is minimum value of in-sway for links in the
+	 *                    linkageSubgraph.
 	 */
-	public void buildGraphInswayNotLessThan(int inSwayLevel) {
+	public void buildGraphInswayNotLessThan(int inSwayLowerBound) {
 		/*
 		 * List of indices of links whose in-sway is not less than the critical in-sway.
 		 */
 		List<Integer> criticalEdges = this.linksGroupedByInsway.entrySet().stream()
-				.filter(s -> s.getKey().compareTo(inSwayLevel) >= 0).flatMap(s -> s.getValue().stream()).parallel()
+				.filter(s -> s.getKey().compareTo(inSwayLowerBound) >= 0).flatMap(s -> s.getValue().stream()).parallel()
 				.toList();
-		this.modestLinkageGraph = new SparseIntUndirectedWeightedGraph(this.nO,
+		this.linkageSubgraph = new SparseIntUndirectedWeightedGraph(this.nO,
 				criticalEdges.parallelStream().map(pickEdge::apply).toList());
 	}
 
@@ -429,8 +429,8 @@ public class LinkageGraphBuilder {
 	 * @return the modest Linkage Graph, namely a linkage graph excluding links of
 	 *         in-sway less than user-specified value, as in
 	 */
-	public SparseIntUndirectedWeightedGraph getModestLinkageGraph() {
-		return modestLinkageGraph;
+	public SparseIntUndirectedWeightedGraph getLinkageSubgraph() {
+		return linkageSubgraph;
 	}
 
 	/**
