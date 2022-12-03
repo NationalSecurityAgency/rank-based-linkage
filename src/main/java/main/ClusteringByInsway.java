@@ -135,41 +135,43 @@ public class ClusteringByInsway {
 	 *             sub-critical linkage graph and its components will be returned.
 	 */
 	public static void main(String[] args) {
-		String fileName = args[0];
-		String modifiers = args[1];
-		String clusterSizeLimit = System.getProperty("maxCluster");
-		if (!inputGraphOptions.contains(modifiers)) {
-			throw new IllegalArgumentException("Third argument must be one of: " + " Dh," + " Dl," + " Uh," + " Ul.");
+		if (args.length < 3 || args.length > 4) {
+			throw new RuntimeException("Three or four arguments are needed: \n filename for graph edges "
+					+ "\n 2-chararacter instruction Dh, Dl, Uh or Ul for reading graph "
+					+ "\n number K of neighbors, and \n (optional) maximum cluster size");
 		} else {
-			boolean isDirected = modifiers.startsWith(new String("D")) ? true : false;
-			boolean higherBetter = modifiers.endsWith(new String("h")) ? true : false;
+			String fileName = args[0];
+			String modifiers = args[1];
 			int k = Integer.parseInt(args[2]); // # neighbors
-			if (args.length != 3) {
-				throw new RuntimeException("User must provide three arguments - "
-						+ " (1) input file/directory, (2) one of the modifiers Dh, Dl, Uh, Ul,"
-						+ "and (3) # nearest neighbors K");
-			}
 			OptionalInt maxClusterSize = OptionalInt.empty();
-			if (clusterSizeLimit != null) {
-				maxClusterSize = OptionalInt.of(Integer.parseInt(clusterSizeLimit));
+			if (args.length > 3) {
+				maxClusterSize = OptionalInt.of(Integer.parseInt(args[3]));
 			}
-			StringPairCSVReader reader = new StringPairCSVReader();
-			reader.readStringPairsWithWeights(fileName);
-			int nEdges = reader.getWeightedEdges().size();
-			GlobalLog.log(Level.INFO, "Edge list has size " + nEdges);
-			ClusteringByInsway rbl = new ClusteringByInsway(reader.getWeightedEdges(), isDirected, higherBetter, k,
-					maxClusterSize);
-			GlobalLog.log(Level.INFO, "Input file " + fileName + ", size: " + nEdges + "; directed edges? " + isDirected
-					+ "; higher edge weights mean more similar? " + higherBetter);
-			GlobalLog.log(Level.INFO, k + " nearest neighbors will be used; maximum cluster size " + maxClusterSize);
-			GlobalLog.log(Level.INFO, "Java runtime version: " + System.getProperty("java.runtime.version"));
-			/*
-			 * All the work happens here
-			 */
-			rbl.prepareNNDigraph();// prepare the k-NN digraph
-			rbl.buildLinkageGraph();// rank-based linkage algorithm
-			rbl.extractLinkageSubgraph(); // choose a subgraph, find it components
-			rbl.exportLinkageSubgraph(); // write subgraph to two files as above
+			if (!inputGraphOptions.contains(modifiers)) {
+				throw new IllegalArgumentException(
+						"Third argument must be one of: " + " Dh," + " Dl," + " Uh," + " Ul.");
+			} else {
+				boolean isDirected = modifiers.startsWith(new String("D")) ? true : false;
+				boolean higherBetter = modifiers.endsWith(new String("h")) ? true : false;
+				StringPairCSVReader reader = new StringPairCSVReader();
+				reader.readStringPairsWithWeights(fileName);
+				int nEdges = reader.getWeightedEdges().size();
+				GlobalLog.log(Level.INFO, "Edge list has size " + nEdges);
+				ClusteringByInsway rbl = new ClusteringByInsway(reader.getWeightedEdges(), isDirected, higherBetter, k,
+						maxClusterSize);
+				GlobalLog.log(Level.INFO,
+						"Input file " + fileName + ", size: " + nEdges + "; \ndirected edges? " + isDirected
+								+ "; \nhigher edge weights mean more similar? \n" + higherBetter + "\n" + k
+								+ " nearest neighbors will be used; maximum cluster size " + maxClusterSize);
+				GlobalLog.log(Level.INFO, "Java runtime version: " + System.getProperty("java.runtime.version"));
+				/*
+				 * All the work happens here
+				 */
+				rbl.prepareNNDigraph();// prepare the k-NN digraph
+				rbl.buildLinkageGraph();// rank-based linkage algorithm
+				rbl.extractLinkageSubgraph(); // choose a subgraph, find it components
+				rbl.exportLinkageSubgraph(); // write subgraph to two files as above
+			}
 		}
 	}
 
@@ -229,6 +231,7 @@ public class ClusteringByInsway {
 	}
 
 	private void exportLinkageSubgraph() {
+		this.lgWriter = new LinkageGraphCSVWriter();
 		this.lgWriter.setObjectStringLookup(this.objectStringLookup);
 		String prefix = "RBL-" + this.lgb.getNumberObjects() + "-objects-component-size-bound-"
 				+ this.subgraphMaxComponentSize + "-";

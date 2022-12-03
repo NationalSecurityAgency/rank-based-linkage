@@ -73,7 +73,7 @@ public class LinkageGraphBuilder {
 	 */
 	private Map<Integer, List<Integer>> linksGroupedByInsway;
 	/*
-	 * In the linkags graph containing links of ins-sway at least k, what is the
+	 * In the linkage graph containing links of ins-sway at least k, what is the
 	 * size of the largest component?
 	 */
 	private Map<Integer, Integer> maxComponentSizeByInsway;

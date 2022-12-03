@@ -1,5 +1,5 @@
 Manifest-Version: 1.0
-Build-Jdk-Spec: 17
+Build-Jdk-Spec: 19
 Class-Path: lib/jgrapht-core-1.5.1.jar lib/jheaps-0.13.jar lib/jgrapht-o
  pt-1.5.1.jar lib/fastutil-8.5.2.jar lib/commons-csv-1.9.0.jar lib/maven
  -resources-plugin-3.1.0.jar lib/maven-plugin-api-3.0.jar lib/maven-arti

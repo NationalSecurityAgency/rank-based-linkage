@@ -51,6 +51,7 @@ public class DirectedToNNDigraph extends SparseGraphDataPreparer implements Near
 		this.digraph = new SparseIntDirectedWeightedGraph(super.nV, super.buildEdgeList());// immutable
 		GlobalLog.log(Level.INFO,
 				"Directed linkageGraph built, with " + super.nE + " edges, and " + super.nV + " vertices.");
+		GlobalLog.log(Level.INFO,"Object-string lookup built: first string is " + this.getObjectStringLookup().get(0));
 		/*
 		 * Comparator ranks edge e before edge f if weight(f) &lt; weight(e) if
 		 * higherWeightIsBetter is true

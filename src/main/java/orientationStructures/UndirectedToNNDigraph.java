@@ -57,6 +57,7 @@ public class UndirectedToNNDigraph extends SparseGraphDataPreparer implements Ne
 		this.graph = new SparseIntUndirectedWeightedGraph(super.nV, super.buildEdgeList());
 		GlobalLog.log(Level.INFO,
 				"Undirected linkageGraph built, with " + super.nE + " edges, and " + super.nV + " vertices.");
+		GlobalLog.log(Level.INFO,"Object-string lookup built: first string is " + this.getObjectStringLookup().get(0));
 		/*
 		 * Comparator ranks edge e before edge f if weight(f) &lt; weight(e) if
 		 * higherWeightIsBetter is true
