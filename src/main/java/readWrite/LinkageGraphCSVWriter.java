@@ -76,10 +76,10 @@ public class LinkageGraphCSVWriter {
 	 * 
 	 * @param directory            to write file
 	 * @param singleVertexFileName name for file of isolated vertices
-	 * @param whichComponent       returns -1 if vertex v is isolated. Only such
-	 *                             vertices are written to file.
+	 * @param linkageGraph         subgraph on which components are comnputed
+	 * @param isIsolated           array: true at v if vertex v is isolated
 	 */
-	public void writeSingletonVerticesToFile(String directory, String singleVertexFileName, 
+	public void writeSingletonVerticesToFile(String directory, String singleVertexFileName,
 			SparseIntUndirectedWeightedGraph linkageGraph, boolean[] isIsolated) {
 		GlobalLog.log(Level.INFO, "Writing isolated vertices to file, one per line, to file " + singleVertexFileName);
 		try {
@@ -90,7 +90,7 @@ public class LinkageGraphCSVWriter {
 			for (Integer vertex : linkageGraph.vertexSet()) {
 				if (isIsolated[vertex.intValue()]) {
 					csvprinterV.printRecord(this.objectStringLookup.get(vertex));
-				}			
+				}
 			}
 			csvprinterV.close();
 

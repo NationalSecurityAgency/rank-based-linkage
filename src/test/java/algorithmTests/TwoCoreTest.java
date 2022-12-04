@@ -14,7 +14,7 @@ import org.jgrapht.opt.graph.sparse.SparseIntUndirectedGraph;
 import algorithms.TwoCoreIntBased;
 
 /**
- * Test the {@link utilities.TwoCoreIntBased} class on a
+ * Test the {@link algorithms.TwoCoreIntBased} class on a
  * SparseIntUndirectedGraph. Passed 11.7.2022.
  * 
  * @author <a href="https://github.com/probabilist-us">R. W. R. Darling</a>

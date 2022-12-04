@@ -197,14 +197,14 @@ public class ConcordanceExplorer {
 	 * Doubts about whether O(n^4) or O(n^3 log(n)) edge flips are needed. The state
 	 * space of the random walk has about (n!)^n elements.
 	 * <p>
-	 * Tested in {@link Test3ConcordantRandomWalk} class.
+	 * Tested in {@link test.orientationStructuresTest.Test3ConcordantRandomWalk}
+	 * class.
 	 * <p>
 	 * Storage requirement: O(n^2)
 	 * <p>
 	 * Run time: O(n^3). Twenty seconds at n = 1000.
 	 * 
-	 * @param n size of set S of objects.
-	 * @since 7.23.2022.
+	 * @param nSteps # flips to perform before termination
 	 */
 	public void edgeFlipProcess(int nSteps) {
 		this.numFlips = 0;
@@ -256,7 +256,7 @@ public class ConcordanceExplorer {
 	 * Trick to allow use of IntPredicate in {@link test3Concordance}.
 	 * 
 	 * @param m &lt; n^3
-	 * @return true if x < y < z and {xy, yz, xz} is a directed 3-cycle
+	 * @return true if x &lt; y &lt; z and {xy, yz, xz} is a directed 3-cycle
 	 */
 	public boolean voter2SimplexIsCyclic(int m) {
 		int x = m % n; // e.g. n = 10, m = 875, x = 5
@@ -331,7 +331,7 @@ public class ConcordanceExplorer {
 	 * Checks relative of frequency of 4-cycles; used after {@link edgeFlipProcess}
 	 * to verify that orientation is no longer acyclic.
 	 * 
-	 * @param sample size
+	 * @param sampleSize how many 4-tuples to sample
 	 * @return number of 4-cycles detected in random sample of 3-simplices
 	 */
 	public int detect4CyclesFromSample(int sampleSize) {
@@ -352,7 +352,7 @@ public class ConcordanceExplorer {
 
 	/**
 	 * Exhaustive enumeration of 3-concordant ranking systems when n = 4. Called by
-	 * {@link Exhaust3ConcordantOnFourPoints} test class.
+	 * {@link test.orientationStructuresTest.Exhaust3ConcordantOnFourPoints} test class.
 	 * <p>
 	 * Shows there are 450 3-concordant ranking tables on a set of four points, and
 	 * 8 of them make {01, 12, 23, 03} a 4-cycle.
@@ -428,12 +428,10 @@ public class ConcordanceExplorer {
 		int rank = this.g.nextInt(this.n - 1);
 		int objectAtRank = this.orderedNeighbors[index][rank];
 		int rankOfObject = this.rankTable[index][objectAtRank];
-		GlobalLog.log(Level.INFO, "0 position among neighbors of " +index + " is "+
-				this.orderedNeighbors[index][0]);
-		GlobalLog.log(Level.INFO, "For object " + index + ", object at rank " + rank +
-				" is " + objectAtRank);
+		GlobalLog.log(Level.INFO, "0 position among neighbors of " + index + " is " + this.orderedNeighbors[index][0]);
+		GlobalLog.log(Level.INFO, "For object " + index + ", object at rank " + rank + " is " + objectAtRank);
 		GlobalLog.log(Level.INFO, "Rank of this object in table is " + rankOfObject);
-		
+
 	}
 
 	/**

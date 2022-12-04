@@ -19,7 +19,7 @@ import readWrite.StringPairCSVReader;
 import readWrite.StringPairWithWeight;
 
 /**
- * Input can be either
+ * TODO - test on all 4 kinds of input graph Input can be either
  * <p>
  * &bull; [Command line option Dh or Dl] Directed graph D with edge weights,
  * supplied as multiple lines of form (String source, String target, Double
@@ -30,7 +30,7 @@ import readWrite.StringPairWithWeight;
  * this format. Uh (RESP. Ul) means higher (RESP. lower) weight means more
  * similar.
  * <p>
- * &bull; [Compulsory command line argument K &ge2;] (such as 8) for number of
+ * &bull; [Compulsory command line argument K &ge; 2] (such as 8) for number of
  * near neighbors of each object to include.
  * <p>
  * &bull; [Optional runtime property "-maxCluster m"] (such as 30) produces a
@@ -101,11 +101,11 @@ public class ClusteringByInsway {
 
 	/**
 	 * 
-	 * @param weightedEdges
-	 * @param directed
-	 * @param higherIsBetter
-	 * @param numNN
-	 * @param maxClusterSize
+	 * @param weightedEdges input list of records
+	 * @param directed true if edges are directed
+	 * @param higherIsBetter true if higher weight means more similar
+	 * @param numNN number of nearest neighbors
+	 * @param maxClusterSize optional parameter in selecting in-sway threshold
 	 */
 	public ClusteringByInsway(List<StringPairWithWeight> weightedEdges, boolean directed, boolean higherIsBetter,
 			int numNN, OptionalInt maxClusterSize) {
@@ -135,6 +135,7 @@ public class ClusteringByInsway {
 	 *             sub-critical linkage graph and its components will be returned.
 	 */
 	public static void main(String[] args) {
+		GlobalLog.log(Level.INFO, "Java runtime version: " + System.getProperty("java.runtime.version"));
 		if (args.length < 3 || args.length > 4) {
 			throw new RuntimeException("Three or four arguments are needed: \n filename for graph edges "
 					+ "\n 2-chararacter instruction Dh, Dl, Uh or Ul for reading graph "
@@ -160,16 +161,23 @@ public class ClusteringByInsway {
 				ClusteringByInsway rbl = new ClusteringByInsway(reader.getWeightedEdges(), isDirected, higherBetter, k,
 						maxClusterSize);
 				GlobalLog.log(Level.INFO,
-						"Input file " + fileName + ", size: " + nEdges + "; \ndirected edges? " + isDirected
-								+ "; \nhigher edge weights mean more similar? \n" + higherBetter + "\n" + k
-								+ " nearest neighbors will be used; maximum cluster size " + maxClusterSize);
-				GlobalLog.log(Level.INFO, "Java runtime version: " + System.getProperty("java.runtime.version"));
+						"Input file " + fileName + ", size: " + nEdges + ". Directed edges? " + isDirected);
+				GlobalLog.log(Level.INFO,
+						k + " nearest neighbors will be used; maximum cluster size " + maxClusterSize);
+
 				/*
 				 * All the work happens here
 				 */
+				double t0 = (double) System.currentTimeMillis();
 				rbl.prepareNNDigraph();// prepare the k-NN digraph
+				double t1 = (double) System.currentTimeMillis();
+				GlobalLog.log(Level.INFO, "Digraph preparation: " + (t1 - t0) / 1000.0 + " secs.");
 				rbl.buildLinkageGraph();// rank-based linkage algorithm
-				rbl.extractLinkageSubgraph(); // choose a subgraph, find it components
+				double t2 = (double) System.currentTimeMillis();
+				GlobalLog.log(Level.INFO, "Rank-based linkage computation: " + (t2 - t1) / 1000.0 + " secs.");
+				rbl.extractLinkageSubgraph(); // choose a subgraph, find its components
+				double t3 = (double) System.currentTimeMillis();
+				GlobalLog.log(Level.INFO, "Subgraph extraction and components: " + (t3 - t2) / 1000.0 + " secs.");
 				rbl.exportLinkageSubgraph(); // write subgraph to two files as above
 			}
 		}
@@ -209,12 +217,14 @@ public class ClusteringByInsway {
 			 * Determine in-sway lower bound for desired subgraph
 			 */
 			inSwayLB = this.lgb.unionFindUpToClusterThreshold(this.maxCluster.getAsInt());
+			GlobalLog.log(Level.INFO, "Insway lower bound: " + inSwayLB + " under cluster constraint.");
 		}
 		/*
 		 * Case 2: default to lower bound which is critical in-sway plus 1
 		 */
 		else {
 			inSwayLB = this.lgb.getCriticalInsway() + 1;
+			GlobalLog.log(Level.INFO, "Insway lower bound: " + inSwayLB + " without cluster constraint.");
 		}
 		/*
 		 * Build subgraph for this component size bound.
@@ -222,7 +232,7 @@ public class ClusteringByInsway {
 		this.lgb.buildGraphInswayNotLessThan(inSwayLB);
 		this.subgraphEdgeCount = this.lgb.getLinkageSubgraph().edgeSet().size();
 		GlobalLog.log(Level.INFO,
-				"Subgraph with lower bound " + inSwayLB + " on in-sway has " + subgraphEdgeCount + " edges.");
+				"Subgraph with insway lower bound " + inSwayLB + " has " + subgraphEdgeCount + " edges.");
 		/*
 		 * Component structure of subgraph
 		 */

@@ -45,9 +45,8 @@ import logging.GlobalLog;
  * m. Here L_t are links with in-sway at least t. Also exports edges of this
  * graph, marked by component.
  * <p>
- * Tested via {@link test.algorithmTests.TestLinkageGraphBuilder} on variety of
+ * Tested via TestLinkageGraphBuilder on variety of
  * directed graphs.
- * <p>
  * 
  * @author <a href="https://github.com/probabilist-us">R. W. R. Darling</a>
  *
@@ -189,7 +188,7 @@ public class LinkageGraphBuilder {
 				this.mutualFriends.parallelStream().map(xz -> new Triple<Integer, Integer, Double>(xz.getFirst(),
 						xz.getSecond(), this.insway(xz.getFirst(), xz.getSecond()))).toList());
 		double duration = (double) (System.currentTimeMillis() - start) / 1000.0;
-		GlobalLog.log(Level.INFO, "Linkage linkageGraph built in " + duration + " secs, with "
+		GlobalLog.log(Level.INFO, "Linkage graph built in " + duration + " secs, with "
 				+ this.linkageGraph.edgeSet().size() + " links.");
 		/*
 		 * Convenience method used later
@@ -228,6 +227,8 @@ public class LinkageGraphBuilder {
 				this.criticalInsway--;
 			}
 		}
+		GlobalLog.log(Level.INFO, "Critical insway: " + criticalInsway + " # links with insway above this: "
+				+ linkCountAboveInswayValue[criticalInsway]);
 	}
 
 	/**
@@ -270,7 +271,7 @@ public class LinkageGraphBuilder {
 	 * Usually call {@link unionFindUpToClusterThreshold} method first.
 	 * 
 	 * @param inSwayLowerBound is minimum value of in-sway for links in the
-	 *                    linkageSubgraph.
+	 *                         linkageSubgraph.
 	 */
 	public void buildGraphInswayNotLessThan(int inSwayLowerBound) {
 		/*

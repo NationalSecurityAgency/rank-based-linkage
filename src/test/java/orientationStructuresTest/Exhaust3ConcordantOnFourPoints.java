@@ -18,8 +18,7 @@ public class Exhaust3ConcordantOnFourPoints {
 	final int n;
 
 	/**
-	 * 
-	 * @param num size of set of points
+	 * Exhaust 3-concordant rankings on 4 points
 	 */
 	public Exhaust3ConcordantOnFourPoints() {
 		GlobalLog.log(Level.INFO, "Instance of " + Exhaust3ConcordantOnFourPoints.class.getName());

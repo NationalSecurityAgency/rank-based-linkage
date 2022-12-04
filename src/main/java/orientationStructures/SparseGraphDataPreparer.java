@@ -19,7 +19,7 @@ import logging.GlobalLog;
 import readWrite.StringPairWithWeight;
 
 /**
- * Contains common methods of the classes {@link OldDirectedToNNDigraph} and
+ * Contains common methods of the classes {@link DirectedToNNDigraph} and
  * {@link UndirectedToNNDigraph}, such as building a vertex index, but no graphs
  * are built yet. The two core construction occurs with a generic AbstractGraph
  * as parameter.
@@ -61,7 +61,7 @@ public abstract class SparseGraphDataPreparer {
 	 * out-degree zero, but positive in-degree.
 	 * <p>
 	 * Preparation for making a linkageGraph with vertices indexed by integers 0 to n
-	 * &minus 1
+	 * &minus; 1
 	 */
 	public void buildObjectIndex() {
 		this.objectStringLookup = this.stwList.stream().flatMap(r -> r.getSourceAndTarget().stream()).distinct()
