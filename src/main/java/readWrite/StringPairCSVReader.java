@@ -21,14 +21,16 @@ import logging.GlobalLog;
  * <p>
  * The triples can represent either a directed or undirected weighted linkageGraph.
  * There is no restriction of the number of targets associated with each source.
- * The K-NN extraction occurs later. Tested 10.19.2022
+ * The K-NN extraction occurs later. 
  * 
  * @author <a href="https://github.com/probabilist-us">R. W. R. Darling</a>
  *
  */
 public class StringPairCSVReader {
 	private List<StringPairWithWeight> weightedEdges;
-
+/**
+ * Minimal constructor
+ */
 	public StringPairCSVReader() {
 		GlobalLog.log(Level.INFO, "Instance of " + StringPairCSVReader.class.getName());
 		this.weightedEdges = new ArrayList<>();

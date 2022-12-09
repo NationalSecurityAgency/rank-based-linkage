@@ -15,7 +15,7 @@ import algorithms.TwoCoreIntBased;
 
 /**
  * Test the {@link algorithms.TwoCoreIntBased} class on a
- * SparseIntUndirectedGraph. Passed 11.7.2022.
+ * SparseIntUndirectedGraph. 
  * 
  * @author <a href="https://github.com/probabilist-us">R. W. R. Darling</a>
  *
@@ -26,6 +26,11 @@ public class TwoCoreTest {
 	TwoCoreIntBased tc;
 	Random g;
 
+	/**
+	 * 
+	 * @param n # vertices
+	 * @param m # edges
+	 */
 	public TwoCoreTest(int n, int m) {
 		g = new Random();
 		this.graph = new SparseIntUndirectedGraph(n, this.edgeList(n, m));
@@ -49,9 +54,9 @@ public class TwoCoreTest {
 	}
 
 	/**
-	 * A random linkageGraph one eleven vertices is created. Edge list is inspected. Check
-	 * whether two core is computed correctly by {@link utilities.TwoCoreIntBased}
-	 * class.
+	 * A random graph on eleven vertices is created. Edge list is inspected.
+	 * Check whether two core is computed correctly by
+	 * {@link algorithms.TwoCoreIntBased} class.
 	 * 
 	 * @param args none
 	 */
@@ -63,7 +68,9 @@ public class TwoCoreTest {
 		test.reportGraph();
 		test.reportCore();
 	}
-
+/**
+ * Report graph neighbor test to console.
+ */
 	public void reportGraph() {
 		for (Integer v : this.graph.vertexSet()) {
 			System.out.print("Neighbors of vertex " + v + ": ");

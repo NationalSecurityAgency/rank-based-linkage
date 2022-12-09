@@ -14,6 +14,7 @@ import orientationStructures.DirectedToNNDigraph;
 import readWrite.StringPairCSVReader;
 
 /**
+ * Tests the {@link orientationStructures.DirectedToNNDigraph} class.
  * @author <a href="https://github.com/probabilist-us">R. W. R. Darling</a>
  *
  */
@@ -31,7 +32,7 @@ public class TestDirectedToNNDigraph {
 	}
 
 	/**
-	 * @param args
+	 * @param args fileName, # neighbors
 	 */
 	public static void main(String[] args) {
 		String fileName = args[0];

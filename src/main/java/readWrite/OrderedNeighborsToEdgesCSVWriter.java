@@ -14,20 +14,23 @@ import org.apache.commons.csv.CSVPrinter;
 
 import logging.GlobalLog;
 
-/*
+/**
  * Given an n by n rank table write n*(n-1) edges to file, of the form:<p>
  * Object-i, Object-j, -k<p>
  * where k is the rank which i affords to j.
  */
 public class OrderedNeighborsToEdgesCSVWriter {
 	int[][] orderedNeighbors;
-
+/**
+ * Minimal constructor
+ */
 	public OrderedNeighborsToEdgesCSVWriter() {
 		GlobalLog.log(Level.INFO, "Instance of " + OrderedNeighborsToEdgesCSVWriter.class.getName());
 	}
 
 	/**
-	 * @param the ordered Neighbors from the rank Table
+	 * 
+	 * @param orderedNeighbors the ordered Neighbors from the rank Table
 	 *            <p>
 	 *            orderedNeighbors[x][k] = y means y is the k-th nearest neighbor of
 	 *            x, according to x's ranking. See

@@ -1,13 +1,26 @@
-package linkageTests;
+package algorithmTests;
 
-public class linkageStatisticsTests {
-
-	public linkageStatisticsTests() {
+/**
+ * Not finished
+ * 
+ * @author <a href="https://github.com/probabilist-us">R. W. R. Darling</a>
+ *
+ */
+public class TenPointLnkageTest {
+	/**
+	 * Minimal
+	 */
+	public TenPointLnkageTest() {
 		// TODO Auto-generated constructor stub
 	}
 
+	/**
+	 * Not completed
+	 * 
+	 * @param args none
+	 */
 	public static void main(String[] args) {
-		// TODO Auto-generated method stub
+		TenPointLnkageTest test = new TenPointLnkageTest();
 
 	}
 

@@ -22,17 +22,18 @@ import org.jgrapht.opt.graph.sparse.SparseIntUndirectedWeightedGraph;
 import logging.GlobalLog;
 
 /**
- * Takes {@link org.jgrapht.opt.graph.sparse.SparseIntDirectedWeightedGraph}
- * object, with vertex set {0, 1, 2, ..., n &minus; 1}. Even when rankings are
- * built from edge weights of an undirected linkageGraph, the relation "is one
- * of the k nearest neighbors of" is not symmetric. Therefore a directed
- * weighted linkageGraph type is needed for input storage.
+ * Applicable to a
+ * {@link org.jgrapht.opt.graph.sparse.SparseIntDirectedWeightedGraph} object,
+ * with vertex set {0, 1, 2, ..., n &minus; 1}. Even when rankings are built
+ * from edge weights of an undirected linkageGraph, the relation "is one of the
+ * k nearest neighbors of" is not symmetric. Therefore a directed weighted
+ * linkageGraph type is needed for input storage.
  * <p>
  * Call z a friend of x it is one of the k nearest neighbors of x.
  * <p>
  * Starts by computing the linkageGraph whose edges are pairs of mutual friends.
- * Take connected components. A linkage linkageGraph is computed on each
- * component. This means computing in-sway for each pair of mutual friends.
+ * Take connected components. A linkage graph is computed on each component.
+ * This means computing in-sway for each pair of mutual friends.
  * <p>
  * Turn the pairs of mutual friends {x, z} into a stream, and count for each {x,
  * z} the number of 2-simplices (xz, xy, yz} in which xz is the source. Here at
@@ -45,8 +46,7 @@ import logging.GlobalLog;
  * m. Here L_t are links with in-sway at least t. Also exports edges of this
  * graph, marked by component.
  * <p>
- * Tested via TestLinkageGraphBuilder on variety of
- * directed graphs.
+ * Tested via TestLinkageGraphBuilder on variety of directed graphs.
  * 
  * @author <a href="https://github.com/probabilist-us">R. W. R. Darling</a>
  *
@@ -168,7 +168,7 @@ public class LinkageGraphBuilder {
 	/**
 	 * First builds mutual friend pairs via a parallel stream.
 	 * <p>
-	 * Build weighted edges set of linkage linkageGraph via a parallel stream.
+	 * Build weighted edges set of linkage graph via a parallel stream.
 	 * <p>
 	 * Finally create the linkage graph, by computing all the in-sways.
 	 */
@@ -181,15 +181,15 @@ public class LinkageGraphBuilder {
 		// Collections.shuffle(this.mutualFriends); // not allowed for immutable
 		// collection
 		/*
-		 * Edges of the linkage linkageGraph and their insway are built as a stresm
+		 * Edges of the linkage graph and their insway are built as a stresm
 		 */
 		double start = (double) System.currentTimeMillis();
 		this.linkageGraph = new SparseIntUndirectedWeightedGraph(this.nO,
 				this.mutualFriends.parallelStream().map(xz -> new Triple<Integer, Integer, Double>(xz.getFirst(),
 						xz.getSecond(), this.insway(xz.getFirst(), xz.getSecond()))).toList());
 		double duration = (double) (System.currentTimeMillis() - start) / 1000.0;
-		GlobalLog.log(Level.INFO, "Linkage graph built in " + duration + " secs, with "
-				+ this.linkageGraph.edgeSet().size() + " links.");
+		GlobalLog.log(Level.INFO,
+				"Linkage graph built in " + duration + " secs, with " + this.linkageGraph.edgeSet().size() + " links.");
 		/*
 		 * Convenience method used later
 		 */
@@ -337,8 +337,8 @@ public class LinkageGraphBuilder {
 	}
 
 	/**
-	 * @return the linkage linkageGraph, whose edge weights are the in-sway between
-	 *         mutual friends
+	 * @return the linkage graph, whose edge weights are the in-sway between mutual
+	 *         friends
 	 */
 	public SparseIntUndirectedWeightedGraph getLinkageGraph() {
 		return linkageGraph;

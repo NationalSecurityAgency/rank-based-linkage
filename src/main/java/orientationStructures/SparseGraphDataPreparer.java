@@ -31,7 +31,7 @@ public abstract class SparseGraphDataPreparer {
 	private List<String> objectStringLookup; // list of distinct Strings in Source or Target position
 	private Map<String, Integer> vertexIndex; // maps string s to integer i if objectStringLookup.get(i) = s
 	private List<StringPairWithWeight> stwList; // stw means "source, target, weight"
-	public int nV, nE; //One more than highest numbered vertex (resp. edge)
+	int nV, nE; // One more than highest numbered vertex (resp. edge)
 	boolean[] vertexIsInTwoCore, edgeIsInTwoCore;
 
 	/**
@@ -60,8 +60,8 @@ public abstract class SparseGraphDataPreparer {
 	 * WARNING: Not enough to include sources only. Possibly some vertex has
 	 * out-degree zero, but positive in-degree.
 	 * <p>
-	 * Preparation for making a linkageGraph with vertices indexed by integers 0 to n
-	 * &minus; 1
+	 * Preparation for making a linkageGraph with vertices indexed by integers 0 to
+	 * n &minus; 1
 	 */
 	public void buildObjectIndex() {
 		this.objectStringLookup = this.stwList.stream().flatMap(r -> r.getSourceAndTarget().stream()).distinct()
@@ -73,9 +73,11 @@ public abstract class SparseGraphDataPreparer {
 	}
 
 	/**
-	 * Purpose: input file for the
-	 * {@link org.jgrapht.opt.graph.sparse.SparseIntDirectedWeightedGraph}
-	 * constructor.
+	 * 
+	 * 
+	 * @return list of triples suitable for input file for the
+	 *         {@link org.jgrapht.opt.graph.sparse.SparseIntDirectedWeightedGraph}
+	 *         constructor.
 	 */
 	public List<Triple<Integer, Integer, Double>> buildEdgeList() {
 		/*

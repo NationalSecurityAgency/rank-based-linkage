@@ -15,29 +15,30 @@ import java.util.stream.Collectors;
 import org.jgrapht.graph.AbstractGraph;
 
 /**
- * Computes the vertices and edges in the two core of a linkageGraph, WITHOUT
- * constructing e new linkageGraph. Process: recognize edges incident to degree one
+ * Computes the vertices and edges in the two core of a graph, WITHOUT
+ * constructing a new graph. Process: recognize edges incident to degree one
  * vertices, and update vertex degrees. Modified from trubbl-core project so
- * vertices and edges are both of Integer type. This allows passing results
- * back in the form of boolean arrays.
+ * vertices and edges are both of Integer type. This allows passing results back
+ * in the form of boolean arrays.
  * <p>
  * Applicable to SparseIntDirectedWeightedGraph and
  * SparseIntUnirectedWeightedGraph objects.
  * 
  * 
- * * Example
+ * Example
  * <p>
- * Edge list of random linkageGraph: {h, b}, {e, b}, {g, h}, {g, d}, {d, f}, {a, k},
+ * Edge list of random graph: {h, b}, {e, b}, {g, h}, {g, d}, {d, f}, {a, k},
  * {g, e}, {b, k}, {a, g}, Two core vertices: a, b, e, g, h, k, Two core edges:
  * {h, b}, {b, k}, {a, k}, {g, h}, {g, e}, {e, b}, {a, g}, Numbers of edges
- * removed per round: 1, 1, 0,
+ * removed per round: 1, 1, 0.
  * 
  * @author <a href="https://github.com/probabilist-us">R. W. R. Darling</a>
  *
  */
 public class TwoCoreIntBased {
 	/*
-	 * The linkageGraph will not be changed. We will only reduce the effective degree.
+	 * The linkageGraph will not be changed. We will only reduce the effective
+	 * degree.
 	 */
 	AbstractGraph<Integer, Integer> graph;
 	final int nV, nE;

@@ -14,7 +14,7 @@ import orientationStructures.UndirectedToNNDigraph;
 import readWrite.StringPairCSVReader;
 
 /**
- * Tests {@link UndirectedToNNDigraph}
+ * Tests the {@link UndirectedToNNDigraph} class.
  * @author <a href="https://github.com/probabilist-us">R. W. R. Darling</a>
  *
  */

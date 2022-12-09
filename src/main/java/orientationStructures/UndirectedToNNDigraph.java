@@ -23,8 +23,6 @@ import readWrite.StringPairWithWeight;
  * Differs from the directed version {@link DirectedToNNDigraph} in that we
  * build an undirected linkageGraph first, take its two core, compute K-NN of
  * each vertex, and write to a directed weighted linkageGraph.
- * <p>
- * Tested 11.8.2022
  * 
  * @author <a href="https://github.com/probabilist-us">R. W. R. Darling</a>
  *
@@ -37,10 +35,11 @@ public class UndirectedToNNDigraph extends SparseGraphDataPreparer implements Ne
 	 * Comparator ranks edge e before edge f if weight(f) &lt; weight(e).
 	 */
 	private boolean higherWeightIsBetter;
-	public Comparator<Integer> edgeMoreSimilarThan;
+	private Comparator<Integer> edgeMoreSimilarThan;
 
 	/**
 	 * 
+	 * @param higherBetter true if higher weight means more similar
 	 */
 	public UndirectedToNNDigraph(boolean higherBetter) {
 		GlobalLog.log(Level.INFO, "Instance of " + UndirectedToNNDigraph.class.getName());
@@ -57,7 +56,7 @@ public class UndirectedToNNDigraph extends SparseGraphDataPreparer implements Ne
 		this.graph = new SparseIntUndirectedWeightedGraph(super.nV, super.buildEdgeList());
 		GlobalLog.log(Level.INFO,
 				"Undirected linkageGraph built, with " + super.nE + " edges, and " + super.nV + " vertices.");
-		GlobalLog.log(Level.INFO,"Object-string lookup built: first string is " + this.getObjectStringLookup().get(0));
+		GlobalLog.log(Level.INFO, "Object-string lookup built: first string is " + this.getObjectStringLookup().get(0));
 		/*
 		 * Comparator ranks edge e before edge f if weight(f) &lt; weight(e) if
 		 * higherWeightIsBetter is true
@@ -84,7 +83,6 @@ public class UndirectedToNNDigraph extends SparseGraphDataPreparer implements Ne
 	 * two core, in the {@link buildKNearNbrDigraph} method.
 	 * <p>
 	 * Excludes non-two core edges.
-	 * <p>
 	 * 
 	 * @param v source vertex
 	 * @param k number to be returned

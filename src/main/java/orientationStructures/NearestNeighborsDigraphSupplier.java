@@ -18,18 +18,44 @@ import readWrite.StringPairWithWeight;
  *
  */
 public interface NearestNeighborsDigraphSupplier {
+	/**
+	 * 
+	 * @param edgeRecords List of records to become weighted edges
+	 */
 	public void setSourceTargetWeightList(List<StringPairWithWeight> edgeRecords);
 
+	/**
+	 * Build lookup from object string to int
+	 */
 	public void buildObjectIndex();// can we implement it here?
 
+	/**
+	 * 
+	 * @param edgeRecords to be used for raw graph
+	 */
 	public void buildRawSparseGraph(List<StringPairWithWeight> edgeRecords);
-	
+
+	/**
+	 * Find maximal subgraph where every vertex has at least 2
+	 */
 	public void determineTwoCore();
-	
+
+	/**
+	 * 
+	 * @param k number of neighbors
+	 */
 	public void buildKNearNbrDigraph(int k);
 
+	/**
+	 * 
+	 * @return lookup from object string to int
+	 */
 	public Map<String, Integer> getVertexIndex();
 
+	/**
+	 * 
+	 * @return the NN digraph, used as input for rank-based linkage
+	 */
 	public SparseIntDirectedWeightedGraph getKNNDigraph();
 
 }

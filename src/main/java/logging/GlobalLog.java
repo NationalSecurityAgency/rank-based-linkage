@@ -13,7 +13,7 @@ import java.util.logging.Logger;
 /**
  * Creates a static global logger to which various classes may append their
  * reports. The log file will be called
- * "Hidden_Ancestor_Graph_Log(timestamp).html".
+ * "Rank_Based_Linkage_Log(timestamp).html".
  * 
  * @author <a href="https://github.com/probabilist-us">R. W. R. Darling</a>
  *
@@ -49,7 +49,11 @@ public class GlobalLog {
 		}
 		return logger;
 	}
-
+/**
+ * 
+ * @param level such as Level.INFO
+ * @param msg string for report
+ */
 	public static void log(Level level, String msg) {
 		getLogger().log(level, msg);
 		System.out.println(msg);

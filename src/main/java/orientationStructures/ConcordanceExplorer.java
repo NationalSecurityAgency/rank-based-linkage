@@ -197,7 +197,7 @@ public class ConcordanceExplorer {
 	 * Doubts about whether O(n^4) or O(n^3 log(n)) edge flips are needed. The state
 	 * space of the random walk has about (n!)^n elements.
 	 * <p>
-	 * Tested in {@link test.orientationStructuresTest.Test3ConcordantRandomWalk}
+	 * Tested in {@link concordanceExperiments.Test3ConcordantRandomWalk}
 	 * class.
 	 * <p>
 	 * Storage requirement: O(n^2)
@@ -352,7 +352,7 @@ public class ConcordanceExplorer {
 
 	/**
 	 * Exhaustive enumeration of 3-concordant ranking systems when n = 4. Called by
-	 * {@link test.orientationStructuresTest.Exhaust3ConcordantOnFourPoints} test class.
+	 * {@link concordanceExperiments.Exhaust3ConcordantOnFourPoints} test class.
 	 * <p>
 	 * Shows there are 450 3-concordant ranking tables on a set of four points, and
 	 * 8 of them make {01, 12, 23, 03} a 4-cycle.
@@ -422,7 +422,9 @@ public class ConcordanceExplorer {
 	public int[][] getOrderedNeighbors() {
 		return orderedNeighbors;
 	}
-
+/**
+ * Logging of whether ranks and neighbor orders are consistent
+ */
 	public void checkConsistencyOfRanksWithNbrs() {
 		int index = this.g.nextInt(this.n);
 		int rank = this.g.nextInt(this.n - 1);
@@ -442,7 +444,8 @@ public class ConcordanceExplorer {
 	}
 
 	/**
-	 * @param orderedNeighbors the orderedNeighbors to set
+	 * 
+	 * @param rankTable rank Table to be set
 	 */
 	public void setRankTable(int[][] rankTable) {
 		this.rankTable = rankTable;

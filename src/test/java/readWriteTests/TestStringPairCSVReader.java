@@ -11,6 +11,7 @@ import readWrite.StringPairCSVReader;
 import readWrite.StringPairWithWeight;
 
 /**
+ * Tests {@link readWrite.StringPairCSVReader} class.
  * @author <a href="https://github.com/probabilist-us">R. W. R. Darling</a>
  *
  */
@@ -18,7 +19,7 @@ public class TestStringPairCSVReader {
 	StringPairCSVReader reader;
 
 	/**
-	 * 
+	 * Minimal constructor
 	 */
 	public TestStringPairCSVReader() {
 		GlobalLog.log(Level.INFO, "Instance of " + TestStringPairCSVReader.class.getName());

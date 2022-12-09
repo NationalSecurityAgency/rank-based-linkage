@@ -1,12 +1,9 @@
 algorithms
 algorithmTests
-deprecated
-linkageTests
+concordanceExperiments
 logging
 main
-orientationGenerators
 orientationStructures
 orientationStructuresTest
 readWrite
 readWriteTests
-utilities

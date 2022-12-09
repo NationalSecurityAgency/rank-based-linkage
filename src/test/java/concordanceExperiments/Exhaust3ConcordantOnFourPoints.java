@@ -1,4 +1,4 @@
-package orientationStructuresTest;
+package concordanceExperiments;
 
 import java.util.Arrays;
 import java.util.logging.Level;
@@ -7,7 +7,7 @@ import logging.GlobalLog;
 import orientationStructures.ConcordanceExplorer;
 
 /**
- * Count 3-concordant on 4 points. In how many is {01, 12, 23, 03} a 4-cycle?
+ * Count 3-concordant ranking systems on 4 points. In how many is {01, 12, 23, 03} a 4-cycle?
  * 
  * @author <a href="https://github.com/probabilist-us">R. W. R. Darling</a>
  *

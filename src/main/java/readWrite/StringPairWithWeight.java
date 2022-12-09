@@ -31,7 +31,10 @@ public record StringPairWithWeight(String source, String target, double weight) 
 	public String toString() {
 		return source + " " + target + " " + Double.toString(weight);
 	}
-
+/**
+ * 
+ * @return list of two strings
+ */
 	public List<String> getSourceAndTarget() {
 		return List.of(source, target);
 	}

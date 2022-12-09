@@ -17,6 +17,7 @@ import readWrite.LinkageGraphCSVWriter;
 import readWrite.StringPairCSVReader;
 
 /**
+ * Tests for {@link algorithms.LinkageGraphBuilder}
  * @author <a href="https://github.com/probabilist-us">R. W. R. Darling</a>
  *
  */
@@ -29,7 +30,7 @@ public class TestLinkageGraphBuilder {
 	final boolean higherWeightMoreSimilar = true;
 
 	/**
-	 * 
+	 * Constructor initializes field.
 	 */
 	public TestLinkageGraphBuilder() {
 		GlobalLog.log(Level.INFO, "Instance of " + TestLinkageGraphBuilder.class.getName());
@@ -42,7 +43,7 @@ public class TestLinkageGraphBuilder {
 
 	/**
 	 * Current version works for directed weighted linkageGraph input. Need to
-	 * prepare undirected input, and distinguish two cases. Pass a third argument?
+	 * prepare undirected input, and distinguish two cases. 
 	 * 
 	 * @param args filename, K (# neighbors)
 	 */

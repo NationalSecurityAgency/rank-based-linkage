@@ -1,4 +1,4 @@
 /**
- * Computation of in-sway and linkage linkageGraph
+ * Computation of in-sway and linkage graph
  */
 package algorithms;

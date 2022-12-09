@@ -35,7 +35,10 @@ public class DirectedToNNDigraph extends SparseGraphDataPreparer implements Near
 	 * higherWeightIsBetter is true, and vice versa.
 	 */
 	public Comparator<Integer> edgeMoreSimilarThan;
-
+/**
+ * 
+ * @param higherBetter true if higher edge weight means more similar
+ */
 	public DirectedToNNDigraph(boolean higherBetter) {
 		GlobalLog.log(Level.INFO, "Instance of " + DirectedToNNDigraph.class.getName());
 		this.higherWeightIsBetter = higherBetter;

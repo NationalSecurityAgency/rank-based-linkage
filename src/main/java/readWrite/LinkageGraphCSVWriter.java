@@ -30,7 +30,9 @@ import logging.GlobalLog;
 public class LinkageGraphCSVWriter {
 
 	List<String> objectStringLookup;
-
+/**
+ * Minimal constructor
+ */
 	public LinkageGraphCSVWriter() {
 		GlobalLog.log(Level.INFO, "Instance of " + LinkageGraphCSVWriter.class.getName());
 	}

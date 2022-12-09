@@ -19,7 +19,9 @@ import readWrite.StringPairCSVReader;
 import readWrite.StringPairWithWeight;
 
 /**
- * TODO - test on all 4 kinds of input graph Input can be either
+ * See main method for input argument syntax.
+ * <p>
+ * Input can be either
  * <p>
  * &bull; [Command line option Dh or Dl] Directed graph D with edge weights,
  * supplied as multiple lines of form (String source, String target, Double
@@ -33,33 +35,33 @@ import readWrite.StringPairWithWeight;
  * &bull; [Compulsory command line argument K &ge; 2] (such as 8) for number of
  * near neighbors of each object to include.
  * <p>
- * &bull; [Optional runtime property "-maxCluster m"] (such as 30) produces a
- * linkage subgraph where the in-sway threshold is as low as possible such that
- * no component of the subgraph contains more than m objects. If this argument
- * is omitted, the sub-critical linkage graph is produced.
+ * &bull; [Optional argument m] (such as 30) produces a linkage subgraph where
+ * the in-sway threshold is as low as possible such that no component of the
+ * subgraph contains more than m objects. If this argument is omitted, the
+ * sub-critical linkage graph is produced.
  * <p>
  * Step I: extract the 2-core of U, or of the undirected form of D, as
  * appropriate. After that, every object has total degree at least two in either
- * case, and therefore participates in at least one "voter triangle" {xy, yz,
- * yz}.
+ * case, and therefore is eligible to participate in at least one "voter
+ * triangle" {xy, yz, yz}.
  * <p>
  * Step II: given an integer parameter K &ge; 2 (supplied at run time), scan the
  * neighbors (case U) or out-neighbors (case D) of each object x, and retain
  * edges only for the K nearest according to x's ranking (or d nearest, if x has
  * d &lt; K neighbors in case U or out-neighbors in case D). Call this set
- * Gamma(x). Even in the case of input U, we save results as a DIRECTED weighted
- * graph (S, A, w), because y in Gamma(x) does not imply x in Gamma(y). The
- * weight function w is the same as the one we started with. As explained in the
- * paper
+ * &Gamma;(x). Even in the case of input U, we save results as a DIRECTED
+ * weighted graph (S, A, w), because y in &Gamma;(x) does not imply x in
+ * &Gamma;(y). The weight function w is the same as the one we started with. As
+ * explained in the paper
  * <p>
  * &bull; <i>Rank-based linkage I: triplet comparisons and oriented simplicial
  * complexes</i>, Darling, Grilliette and Logan, 2022
  * <p>
- * This data supplies an orientation of the line graph of an undirected
+ * this data supplies an orientation of the line graph of an undirected
  * K-nearest neighbor graph on a set S of n objects.
  * <p>
- * The present JAVA API creates the edge-weighted linkage graph (S, L, sigma).
- * Here L consists of pairs of mutual friends, and sigma is the in-sway. As t
+ * The present JAVA API creates the edge-weighted linkage graph (S, L, &sigma;).
+ * Here L consists of pairs of mutual friends, and &sigma; is the in-sway. As t
  * varies, the graph components for edges with in-sway at least t supplies a
  * partition of S. This is rank-based linkage hierarchical clustering. The
  * critical value of t is the smallest t such that the number of links whose
@@ -101,10 +103,10 @@ public class ClusteringByInsway {
 
 	/**
 	 * 
-	 * @param weightedEdges input list of records
-	 * @param directed true if edges are directed
+	 * @param weightedEdges  input list of records
+	 * @param directed       true if edges are directed
 	 * @param higherIsBetter true if higher weight means more similar
-	 * @param numNN number of nearest neighbors
+	 * @param numNN          number of nearest neighbors
 	 * @param maxClusterSize optional parameter in selecting in-sway threshold
 	 */
 	public ClusteringByInsway(List<StringPairWithWeight> weightedEdges, boolean directed, boolean higherIsBetter,
@@ -118,9 +120,8 @@ public class ClusteringByInsway {
 	}
 
 	/**
-	 * Example: "java -jar rbl.jar edgefileD.csv Dh 8 -maxCluster 50"
-	 * <p>
-	 * Example: "java -jar rbl.jar edgefileU.csv Ul 16"
+	 * Examples: "java -jar rbl.jar edgefileD.csv Dh 8 50"; "java -jar rbl.jar
+	 * edgefileU.csv Ul 16"
 	 * 
 	 * @param args args[0] is input file name; format is .CSV, each line is: source,
 	 *             target, weight
@@ -129,7 +130,7 @@ public class ClusteringByInsway {
 	 *             <p>
 	 *             args[2] is integer k to count # nearest neighbors (e.g.8)
 	 *             <p>
-	 *             Optional run-time property -maxCluster: integer referring to
+	 *             Optional argument maxCluster: integer referring to
 	 *             user-preferred maximum cluster size (e.g. 100). This will
 	 *             determine in-sway threshold for graph components. If omitted, the
 	 *             sub-critical linkage graph and its components will be returned.
