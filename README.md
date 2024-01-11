@@ -20,3 +20,5 @@ Darling, Grilliette and Logan, https://arxiv.org/abs/2302.02200
 
 <p>Full details: see Javadoc for the ClusteringByInsway class.
 
+<p> The resources folder contains two .csv files containing directed weighted graph data used in our paper. Here "Dh" is the appropriate setting.
+
