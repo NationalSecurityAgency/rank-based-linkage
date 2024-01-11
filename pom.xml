@@ -83,7 +83,7 @@
 							<archive>
 								<manifest>
 									<mainClass>
-										main.LinkMaker
+										main.ClusteringByInsway
 									</mainClass>
 								</manifest>
 							</archive>
