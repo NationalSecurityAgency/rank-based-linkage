@@ -31,6 +31,11 @@ Darling, Grilliette and Logan, https://arxiv.org/abs/2302.02200
 <p> Option --seed fixes the layout (default 1). Option --no-singletons omits isolated objects. Tests: "cd tools/visualize; python -m pytest".
 
 ![Linkage graph of the migrant flow data, Dh 8](tools/visualize/migrantFlows-Dh-8.png)
+## Network traffic preprocessor
+<p> The class preprocessing.TrafficLineGraphBuilder implements item (1) of the future plans below. Input is a CSV file whose lines are: record ID, source address, destination address, numerical time stamp (a header line is allowed). Records e and f are linked if the destination of e is the source of f and e precedes f in time; the weight is the time difference. An optional third argument is the maximum time difference between linked records.
+<p>"java -cp rbl.jar preprocessing.TrafficLineGraphBuilder traffic.csv lineGraph.csv 60"
+<p>"java -jar rbl.jar lineGraph.csv Ul 8"
+<p> The test resources folder contains syntheticTraffic.csv: four relay sessions among disjoint groups of four hosts (record IDs a.., b.., c.., d..) plus ten random cross-group records (x..). With maximum time difference 60 the line graph has 211 edges, and every link in the linkage subgraph from "Ul 8" joins two records of the same session. The class preprocessingTests.TestTrafficLineGraphBuilder checks the line graph of six records by hand.
 
 ## Future plans
 <p> (1) Create a Java preprocessor for network traffic data where each record includes a record ID, a source address, a destination address, and a time stamp. Build an undirected line graph, where records e and f are adjacent if the destination of e is the source of f, and e precedes f in time. Record e orders its neighbors by absolute difference between their time stamps and e's own time stamp. The preprocessor exports a CSV file whose lines are of the form: 
