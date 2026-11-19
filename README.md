@@ -24,6 +24,13 @@ Darling, Grilliette and Logan, https://arxiv.org/abs/2302.02200
 
 <p> In the resources folder are two .csv files containing directed weighted graph data used in our paper. Here "Dh" is the appropriate setting.
 
+## Displaying the linkage graph
+<p> The Python script tools/visualize/rbl_visualize.py (needs networkx and matplotlib) reads the output folder written by rbl.jar and draws a force-directed embedding of the linkage subgraph. Objects are coloured by component, edge width grows with in-sway, and isolated objects are shown in grey below the components. Output may be .png, .svg, .pdf, or .html (a self-contained page; hover over an object or link to see its component or in-sway).
+<p>"java -jar rbl.jar migrantFlows2010-15-200countries-originfirst.csv Dh 8"
+<p>"python tools/visualize/rbl_visualize.py RBL-199-objects-component-size-bound-121-189-links-8-NN-(timestamp) -o graph.png -o graph.html"
+<p> Option --seed fixes the layout (default 1). Option --no-singletons omits isolated objects. Tests: "cd tools/visualize; python -m pytest".
+
+![Linkage graph of the migrant flow data, Dh 8](tools/visualize/migrantFlows-Dh-8.png)
 ## Network traffic preprocessor
 <p> The class preprocessing.TrafficLineGraphBuilder implements item (1) of the future plans below. Input is a CSV file whose lines are: record ID, source address, destination address, numerical time stamp (a header line is allowed). Records e and f are linked if the destination of e is the source of f and e precedes f in time; the weight is the time difference. An optional third argument is the maximum time difference between linked records.
 <p>"java -cp rbl.jar preprocessing.TrafficLineGraphBuilder traffic.csv lineGraph.csv 60"

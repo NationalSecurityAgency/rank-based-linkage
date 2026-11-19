@@ -1,0 +1,22 @@
+[project]
+name = "rbl-visualize"
+version = "0.1.0"
+description = "Force-directed display of linkage graphs written by rbl.jar"
+requires-python = ">=3.9"
+dependencies = ["networkx>=3.0", "matplotlib>=3.5"]
+
+[project.optional-dependencies]
+test = ["pytest"]
+
+[project.scripts]
+rbl-visualize = "rbl_visualize:main"
+
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+py-modules = ["rbl_visualize"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
