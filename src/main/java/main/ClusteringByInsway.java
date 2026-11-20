@@ -102,6 +102,7 @@ public class ClusteringByInsway {
 	private int subgraphEdgeCount, subgraphMaxComponentSize;
 
 	/**
+	 * Constructor gathers the inputs for rank-based linkage
 	 * 
 	 * @param weightedEdges  input list of records
 	 * @param directed       true if edges are directed
@@ -130,10 +131,10 @@ public class ClusteringByInsway {
 	 *             <p>
 	 *             args[2] is integer k to count # nearest neighbors (e.g.8)
 	 *             <p>
-	 *             Optional argument maxCluster: integer referring to
-	 *             user-preferred maximum cluster size (e.g. 100). This will
-	 *             determine in-sway threshold for graph components. If omitted, the
-	 *             sub-critical linkage graph and its components will be returned.
+	 *             Optional argument maxCluster: integer referring to user-preferred
+	 *             maximum cluster size (e.g. 100). This will determine in-sway
+	 *             threshold for graph components. If omitted, the sub-critical
+	 *             linkage graph and its components will be returned.
 	 */
 	public static void main(String[] args) {
 		GlobalLog.log(Level.INFO, "Java runtime version: " + System.getProperty("java.runtime.version"));

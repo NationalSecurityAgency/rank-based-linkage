@@ -11,15 +11,19 @@ import readWrite.StringPairCSVReader;
 import readWrite.StringPairWithWeight;
 
 /**
- * Tests {@link readWrite.StringPairCSVReader} class.
- * @author <a href="https://github.com/probabilist-us">R. W. R. Darling</a>
+ * Simple test driver for {@link StringPairCSVReader}.
+ * <p>
+ * The program reads weighted edge records from a CSV file, logs the total
+ * number of parsed edges, and logs one randomly selected edge for spot-checking
+ * input parsing.
  *
+ * @author <a href="https://github.com/probabilist-us">R. W. R. Darling</a>
  */
 public class TestStringPairCSVReader {
 	StringPairCSVReader reader;
 
 	/**
-	 * Minimal constructor
+	 * Creates a test instance with a fresh {@link StringPairCSVReader}.
 	 */
 	public TestStringPairCSVReader() {
 		GlobalLog.log(Level.INFO, "Instance of " + TestStringPairCSVReader.class.getName());
@@ -27,7 +31,16 @@ public class TestStringPairCSVReader {
 	}
 
 	/**
-	 * @param args args[0] is the csv file name
+	 * Runs the CSV reader smoke test.
+	 * <p>
+	 * Expected argument:
+	 * <ol>
+	 * <li>{@code args[0]}: path to a CSV file of
+	 * {@code source,target,weight} records</li>
+	 * </ol>
+	 *
+	 * @param args command-line arguments, where {@code args[0]} is the CSV file
+	 *             name
 	 */
 	public static void main(String[] args) {
 		String fileName = args[0];

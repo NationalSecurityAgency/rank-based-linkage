@@ -5,5 +5,7 @@ logging
 main
 orientationStructures
 orientationStructuresTest
+preprocessing
+preprocessingTests
 readWrite
 readWriteTests

@@ -22,8 +22,9 @@ import logging.GlobalLog;
 import readWrite.StringPairWithWeight;
 
 /**
- * Preprocessor for network traffic data, as proposed in item (1) of "Future
- * plans" in the README.
+ * Preprocessor for network traffic data, as proposed by R. W. R. Darling, and implemented by
+ * Dukotah Hutcheon (2026).
+ * 
  * <p>
  * Input is a CSV file where each line is: record ID, source address,
  * destination address, time stamp. The time stamp must be numerical (for
@@ -53,6 +54,7 @@ import readWrite.StringPairWithWeight;
  * time(f) - time(e) exceeding it are not linked. Without it, the line graph may
  * have a number of edges quadratic in the number of records.
  *
+ *
  */
 public class TrafficLineGraphBuilder {
 
@@ -61,6 +63,9 @@ public class TrafficLineGraphBuilder {
 	private List<StringPairWithWeight> lineGraphEdges;
 
 	/**
+	 * Creates a line-graph builder for a fixed set of traffic records and an
+	 * optional maximum time-difference constraint.
+	 *
 	 *
 	 * @param trafficRecords    input list of records
 	 * @param maxTimeDifference optional upper bound on time difference of linked
@@ -74,13 +79,18 @@ public class TrafficLineGraphBuilder {
 	}
 
 	/**
-	 * @param args args[0] is input file name; format is .CSV, each line is: record
-	 *             ID, source address, destination address, time stamp
-	 *             <p>
-	 *             args[1] is output file name
-	 *             <p>
-	 *             Optional args[2] is maximum time difference between linked
-	 *             records
+	 * Command-line entry point.
+	 * <p>
+	 * Expected arguments:
+	 * <ol>
+	 * <li>{@code args[0]} input CSV file of traffic records</li>
+	 * <li>{@code args[1]} output CSV file for line-graph edges</li>
+	 * <li>(optional) {@code args[2]} maximum time difference between linked
+	 * records</li>
+	 * </ol>
+	 *
+	 * @param args command-line arguments as described above
+	 * @throws RuntimeException if the number of arguments is not 2 or 3
 	 */
 	public static void main(String[] args) {
 		if (args.length < 2 || args.length > 3) {
@@ -101,6 +111,8 @@ public class TrafficLineGraphBuilder {
 	/**
 	 * Read records of form (record ID, source, destination, time stamp) from CSV
 	 * file. A first line whose time stamp is not a number is treated as a header.
+	 * <p>
+	 * Whitespace around fields is stripped before record creation.
 	 *
 	 * @param csvFileName name of CSV file
 	 * @return list of traffic records
@@ -167,9 +179,14 @@ public class TrafficLineGraphBuilder {
 				+ this.records.size() + " records.");
 	}
 
-	/*
-	 * Index of the first record in a time-sorted list whose time stamp exceeds t;
-	 * list size if there is none.
+	/**
+	 * Returns the index of the first record in a time-sorted list with time strictly
+	 * greater than {@code t}.
+	 *
+	 * @param sorted list sorted by nondecreasing {@link TrafficRecord#time()}
+	 * @param t reference time
+	 * @return smallest index {@code i} such that {@code sorted.get(i).time() > t},
+	 *         or {@code sorted.size()} if no such index exists
 	 */
 	private static int firstIndexLaterThan(List<TrafficRecord> sorted, double t) {
 		int lo = 0;
@@ -207,7 +224,10 @@ public class TrafficLineGraphBuilder {
 	}
 
 	/**
-	 * @return the line graph edges, as (record ID, record ID, time difference)
+	 * Returns the currently built line-graph edges.
+	 *
+	 * @return list of {@link StringPairWithWeight} records of the form
+	 *         {@code (recordID_e, recordID_f, time(f)-time(e))}
 	 */
 	public List<StringPairWithWeight> getLineGraphEdges() {
 		return lineGraphEdges;

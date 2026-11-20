@@ -15,21 +15,34 @@ import org.apache.commons.csv.CSVPrinter;
 import logging.GlobalLog;
 
 /**
- * Given an n by n rank table write n*(n-1) edges to file, of the form:<p>
- * Object-i, Object-j, -k<p>
- * where k is the rank which i affords to j.
+ * Writes ordered-neighbor data to a CSV edge list.
+ * <p>
+ * Given an {@code n x n} ordered-neighbor table, this writer exports directed
+ * weighted edges of the form:
+ * <p>
+ * {@code Object-i, Object-j, -k}
+ * <p>
+ * where {@code k} is the rank assigned by {@code i} to {@code j}. Negative
+ * weights preserve order while allowing larger-magnitude weights to represent
+ * less-similar neighbors.
  */
 public class OrderedNeighborsToEdgesCSVWriter {
 	int[][] orderedNeighbors;
-/**
- * Minimal constructor
- */
+
+	/**
+	 * Creates a writer instance.
+	 */
 	public OrderedNeighborsToEdgesCSVWriter() {
 		GlobalLog.log(Level.INFO, "Instance of " + OrderedNeighborsToEdgesCSVWriter.class.getName());
 	}
 
 	/**
-	 * 
+	 * Sets the ordered-neighbor table used for CSV export.
+	 * <p>
+	 * The expected convention is {@code orderedNeighbors[x][k] = y}, meaning
+	 * object {@code y} is the {@code k}-th nearest neighbor of object {@code x}
+	 * according to {@code x}'s ranking.
+	 *
 	 * @param orderedNeighbors the ordered Neighbors from the rank Table
 	 *            <p>
 	 *            orderedNeighbors[x][k] = y means y is the k-th nearest neighbor of
@@ -41,7 +54,14 @@ public class OrderedNeighborsToEdgesCSVWriter {
 	}
 
 	/**
-	 * 
+	 * Writes one directed edge per object/rank pair to a CSV file.
+	 * <p>
+	 * For each source object {@code i}, the method exports neighbor ranks
+	 * {@code k = 1..numberNeighbors}. Rank {@code 0} (self-neighbor) is skipped by
+	 * convention.
+	 * <p>
+	 * Call {@link #setOrderedNeighbors(int[][])} before invoking this method.
+	 *
 	 * @param numberNeighbors how many ordered neighbors of x (other than x) to take
 	 * @param edgeFileName    file to contain "object, object, weight" triples.
 	 */

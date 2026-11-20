@@ -14,16 +14,26 @@ import orientationStructures.UndirectedToNNDigraph;
 import readWrite.StringPairCSVReader;
 
 /**
- * Tests the {@link UndirectedToNNDigraph} class.
- * @author <a href="https://github.com/probabilist-us">R. W. R. Darling</a>
+ * Integration-style test driver for {@link UndirectedToNNDigraph}.
+ * <p>
+ * The program reads weighted undirected edges from CSV, builds the raw sparse
+ * undirected graph, computes its 2-core, inspects nearest-neighbor extraction
+ * for a sample vertex, and then constructs the directed k-nearest-neighbor
+ * digraph derived from the undirected input.
  *
+ * @author <a href="https://github.com/probabilist-us">R. W. R. Darling</a>
  */
 public class TestUndirectedToNNDigraph {
 	UndirectedToNNDigraph u2nndg;
 	StringPairCSVReader reader;
 
 	/**
-	 * 
+	 * Creates a test instance with:
+	 * <ul>
+	 * <li>a CSV reader for weighted edge records, and</li>
+	 * <li>an {@link UndirectedToNNDigraph} configured so larger weights indicate
+	 * greater similarity.</li>
+	 * </ul>
 	 */
 	public TestUndirectedToNNDigraph() {
 		GlobalLog.log(Level.INFO, "Instance of " + TestUndirectedToNNDigraph.class.getName());
@@ -32,14 +42,21 @@ public class TestUndirectedToNNDigraph {
 	}
 
 	/**
-	 * @param args first is file name of undirected weighted edge data;
-	 *             <p>
-	 *             second is K (neighbor count)
+	 * Runs the undirected-to-kNN pipeline and logs timing/diagnostic information.
+	 * <p>
+	 * Expected arguments:
+	 * <ol>
+	 * <li>path to CSV file containing undirected weighted edge data</li>
+	 * <li>{@code k}, the number of nearest neighbors retained per vertex</li>
+	 * </ol>
+	 *
+	 * @param args command-line arguments where {@code args[0]} is the file name and
+	 *             {@code args[1]} is {@code k}
 	 */
 	public static void main(String[] args) {
 		String fileName = args[0];
 		int k = Integer.parseInt(args[1]); // # neighbors
-		GlobalLog.log(Level.INFO,"Input file: " + fileName);
+		GlobalLog.log(Level.INFO, "Input file: " + fileName);
 		TestUndirectedToNNDigraph test = new TestUndirectedToNNDigraph();
 		test.reader.readStringPairsWithWeights(fileName);
 		int nEdges = test.reader.getWeightedEdges().size();

@@ -56,7 +56,12 @@ public class TwoCoreIntBased {
 	int[] countEdgesRemovedEachRound;
 
 	/**
-	 * @param myGraph - could have isolated vertices
+	 * Creates a 2-core analyzer for an integer-labeled graph.
+	 * <p>
+	 * The constructor initializes degree tracking and output arrays but does not
+	 * run the peeling algorithm; call {@link #computeTwoCore()} to compute results.
+	 *
+	 * @param myGraph input graph; may include isolated vertices
 	 */
 	public TwoCoreIntBased(AbstractGraph<Integer, Integer> myGraph) {
 		this.graph = myGraph;
@@ -85,8 +90,16 @@ public class TwoCoreIntBased {
 	}
 
 	/**
-	 * 
-	 * Compute the two-core subgraph.
+	 * Computes the 2-core by iterative leaf-edge removal.
+	 * <p>
+	 * At each round, all edges incident to current degree-1 vertices are removed
+	 * from the working edge set, degrees are updated, and the process repeats until
+	 * no such edges remain. The method then populates:
+	 * <ul>
+	 * <li>{@code twoCoreVertices} and {@code twoCoreEdges}, and</li>
+	 * <li>array views {@code vertexIsInTwoCore} and {@code edgeIsInTwoCore} for
+	 * fast downstream lookup.</li>
+	 * </ul>
 	 */
 	public void computeTwoCore() {
 		/*
@@ -138,46 +151,63 @@ public class TwoCoreIntBased {
 	}
 
 	/**
-	 * 
-	 * @return the two core vertices
+	 * Returns the vertices in the computed 2-core.
+	 *
+	 * @return set of vertex IDs whose final degree is at least 2 after peeling
 	 */
 	public Set<Integer> getTwoCoreVertices() {
 		return twoCoreVertices;
 	}
 
 	/**
-	 * 
-	 * @return the two core edges
+	 * Returns the edges in the computed 2-core.
+	 *
+	 * @return set of edge IDs that remain after iterative leaf-edge removal
 	 */
 	public Set<Integer> getTwoCoreEdges() {
 		return twoCoreEdges;
 	}
 
 	/**
-	 * @return the edges Removed Each Round, as an array indexed by the rounds
-	 * 
+	 * Returns how many edges are removed at each peeling round.
+	 * <p>
+	 * Index {@code 0} corresponds to the initial batch of outer edges found before
+	 * the first update pass.
+	 *
+	 * @return array indexed by round number with counts of removed edges
 	 */
 	public int[] getCountEdgesRemovedEachRound() {
 		return countEdgesRemovedEachRound;
 	}
 
 	/**
-	 * 
-	 * @return proportion of vertices in the two core
+	 * Returns the fraction of graph vertices that lie in the 2-core.
+	 *
+	 * @return {@code |V(2-core)| / |V(graph)|}
 	 */
 	public double twoCoreVertexProportion() {
 		return (double) twoCoreVertices.size() / (double) this.graph.vertexSet().size();
 	}
 
 	/**
-	 * @return the vertexIsInTwoCore
+	 * Returns a boolean lookup array for 2-core vertex membership.
+	 * <p>
+	 * Entry {@code i} is {@code true} iff vertex ID {@code i} is in the computed
+	 * 2-core.
+	 *
+	 * @return vertex-membership array indexed by vertex ID
 	 */
 	public boolean[] getVertexIsInTwoCore() {
 		return vertexIsInTwoCore;
 	}
 
 	/**
-	 * @return the edgeIsInTwoCore
+	 * Returns a boolean lookup array for 2-core edge membership.
+	 * <p>
+	 * Entry {@code i} is {@code true} iff edge ID {@code i} is in the computed
+	 * 2-core.
+	 *
+	 * @return edge-membership array indexed by edge ID
 	 */
 	public boolean[] getEdgeIsInTwoCore() {
 		return edgeIsInTwoCore;

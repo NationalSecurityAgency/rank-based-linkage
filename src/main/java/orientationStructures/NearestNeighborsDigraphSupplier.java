@@ -11,50 +11,62 @@ import org.jgrapht.opt.graph.sparse.SparseIntDirectedWeightedGraph;
 import readWrite.StringPairWithWeight;
 
 /**
- * This interface is implemented by a class which reads edges of an undirected
- * weighted linkageGraph, and by another class for the directed case.
- * 
- * @author <a href="https://github.com/probabilist-us">R. W. R. Darling</a>
+ * Supplies a directed weighted k-nearest-neighbor (k-NN) graph from weighted
+ * edge records.
+ * <p>
+ * Implementations may support either undirected or directed input edge data,
+ * but expose a common pipeline:
+ * set records, build vertex indexing, construct a raw sparse graph, restrict to
+ * an appropriate core (for example, 2-core), and then derive a k-NN digraph.
  *
+ * @author <a href="https://github.com/probabilist-us">R. W. R. Darling</a>
  */
 public interface NearestNeighborsDigraphSupplier {
 	/**
-	 * 
-	 * @param edgeRecords List of records to become weighted edges
+	 * Sets the input edge records used by the supplier.
+	 *
+	 * @param edgeRecords list of weighted source-target edge records
 	 */
 	public void setSourceTargetWeightList(List<StringPairWithWeight> edgeRecords);
 
 	/**
-	 * Build lookup from object string to int
+	 * Builds the lookup map from object label to internal integer vertex index.
 	 */
 	public void buildObjectIndex();// can we implement it here?
 
 	/**
-	 * 
-	 * @param edgeRecords to be used for raw graph
+	 * Builds the raw sparse weighted graph from edge records.
+	 *
+	 * @param edgeRecords edge records used to initialize the raw graph
 	 */
 	public void buildRawSparseGraph(List<StringPairWithWeight> edgeRecords);
 
 	/**
-	 * Find maximal subgraph where every vertex has at least 2
+	 * Determines the induced subgraph used for downstream nearest-neighbor
+	 * construction, typically the maximal subgraph in which every vertex has degree
+	 * at least 2.
 	 */
 	public void determineTwoCore();
 
 	/**
-	 * 
-	 * @param k number of neighbors
+	 * Builds the directed weighted k-nearest-neighbor graph from the processed
+	 * source graph.
+	 *
+	 * @param k number of nearest outgoing neighbors retained per vertex
 	 */
 	public void buildKNearNbrDigraph(int k);
 
 	/**
-	 * 
-	 * @return lookup from object string to int
+	 * Returns the object-label to vertex-index lookup.
+	 *
+	 * @return map from object string identifier to integer vertex index
 	 */
 	public Map<String, Integer> getVertexIndex();
 
 	/**
-	 * 
-	 * @return the NN digraph, used as input for rank-based linkage
+	 * Returns the final directed weighted k-nearest-neighbor graph.
+	 *
+	 * @return k-NN digraph used as input for rank-based linkage
 	 */
 	public SparseIntDirectedWeightedGraph getKNNDigraph();
 

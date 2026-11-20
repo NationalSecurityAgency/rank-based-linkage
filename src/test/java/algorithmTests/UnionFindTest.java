@@ -12,9 +12,12 @@ import java.util.stream.Collectors;
 import org.jgrapht.alg.util.UnionFind;
 
 /**
- * 
- * Demonstrates how to report the largest cluster size during union find.
- * 
+ * Small demonstration of {@link UnionFind} operations and component-size
+ * reporting.
+ * <p>
+ * This class uses a toy set of objects, performs several union operations, and
+ * shows two equivalent stream-based ways to compute the largest cluster size.
+ *
  * @author <a href="https://github.com/probabilist-us">R. W. R. Darling</a>
  */
 public class UnionFindTest {
@@ -22,7 +25,7 @@ public class UnionFindTest {
 	Set<String> objects;
 
 	/**
-	 * Toy example with eight elements
+	 * Creates a toy example with eight string-labeled elements.
 	 */
 	public UnionFindTest() {
 		this.objects = Set.of("a", "b", "c", "d", "e", "f", "g", "h");
@@ -30,7 +33,12 @@ public class UnionFindTest {
 	}
 
 	/**
-	 * @param args none
+	 * Runs the demonstration.
+	 * <p>
+	 * The method performs unions, prints representative elements, builds component
+	 * groupings, and reports maximum cluster size.
+	 *
+	 * @param args not used
 	 */
 	public static void main(String[] args) {
 		UnionFindTest test = new UnionFindTest();

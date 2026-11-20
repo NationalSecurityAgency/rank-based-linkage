@@ -22,31 +22,32 @@ import org.jgrapht.opt.graph.sparse.SparseIntUndirectedWeightedGraph;
 import logging.GlobalLog;
 
 /**
- * Applicable to a
- * {@link org.jgrapht.opt.graph.sparse.SparseIntDirectedWeightedGraph} object,
- * with vertex set {0, 1, 2, ..., n &minus; 1}. Even when rankings are built
- * from edge weights of an undirected linkageGraph, the relation "is one of the
- * k nearest neighbors of" is not symmetric. Therefore a directed weighted
- * linkageGraph type is needed for input storage.
+ * Builds in-sway weighted linkage graphs from a directed k-nearest-neighbor
+ * digraph.
  * <p>
- * Call z a friend of x it is one of the k nearest neighbors of x.
+ * Input is a
+ * {@link org.jgrapht.opt.graph.sparse.SparseIntDirectedWeightedGraph} on
+ * vertices {@code 0,1,...,n-1}. Even if the original similarity relation is
+ * symmetric, nearest-neighbor relations are generally directed, so directed
+ * input storage is required.
  * <p>
- * Starts by computing the linkageGraph whose edges are pairs of mutual friends.
- * Take connected components. A linkage graph is computed on each component.
- * This means computing in-sway for each pair of mutual friends.
+ * Say {@code z} is a friend of {@code x} if {@code z} is among {@code x}'s
+ * k-nearest outgoing neighbors.
  * <p>
- * Turn the pairs of mutual friends {x, z} into a stream, and count for each {x,
- * z} the number of 2-simplices (xz, xy, yz} in which xz is the source. Here at
- * least one of x and z must be a friend of y.
+ * The workflow is: identify mutual-friend pairs, compute in-sway for each pair,
+ * build an undirected linkage graph weighted by in-sway, and then analyze
+ * thresholded subgraphs and connected components.
  * <p>
- * Computation of ranks is unnecessary; just compare neighbors of vertex v
- * according to weight of outgoing edges from v.
+ * For each mutual pair {@code {x,z}}, in-sway is the number of eligible
+ * 2-simplices where edge {@code xz} is the source edge in the local ordering.
  * <p>
- * Detects minimum in-sway t so no component of L_t has size more than a given
- * m. Here L_t are links with in-sway at least t. Also exports edges of this
- * graph, marked by component.
+ * Explicit rank arrays are unnecessary; comparisons are made directly from
+ * outgoing edge weights.
  * <p>
- * Tested via TestLinkageGraphBuilder on variety of directed graphs.
+ * The class can also find threshold values of in-sway to control maximum
+ * connected-component size.
+ * <p>
+ * Tested via {@code TestLinkageGraphBuilder} on a variety of directed graphs.
  * 
  * @author <a href="https://github.com/probabilist-us">R. W. R. Darling</a>
  *
@@ -78,7 +79,11 @@ public class LinkageGraphBuilder {
 	private Map<Integer, Integer> maxComponentSizeByInsway;
 
 	/**
-	 * 
+	 * Creates a linkage-graph builder.
+	 * <p>
+	 * The {@code higherWeightMoreSimilar} flag controls all neighbor comparisons in
+	 * methods such as {@link #moreSimilarTo(int, int, int)}.
+	 *
 	 * @param higherWeightMoreSimilar true if the higher of two weights of outgoing
 	 *                                edges from vertex x points to vertex more
 	 *                                similar to vertex x.
@@ -90,10 +95,10 @@ public class LinkageGraphBuilder {
 	}
 
 	/**
-	 * Chooses digraph, and initializes vertex- dependent arrays.
+	 * Sets the input data digraph and initializes vertex-dependent arrays.
 	 * 
 	 * @param digraph used as a representative of out-ordered digraph equivalence
-	 *                class,
+	 *                class
 	 */
 	public void setDigraph(SparseIntDirectedWeightedGraph digraph) {
 		this.dataDigraph = digraph;
@@ -108,7 +113,7 @@ public class LinkageGraphBuilder {
 	 * 
 	 * @param i base vertex
 	 * @param j neighbor of i
-	 * @param k neighbor of k
+	 * @param k another neighbor of i
 	 * @return true if j is more similar to i than k is to i
 	 */
 	public boolean moreSimilarTo(int i, int j, int k) {
@@ -232,7 +237,13 @@ public class LinkageGraphBuilder {
 	}
 
 	/**
-	 * 
+	 * Finds the smallest in-sway threshold whose retained-link graph has maximum
+	 * component size at most {@code m}.
+	 * <p>
+	 * Let {@code L_t} be the linkage graph containing edges with in-sway at least
+	 * {@code t}. This method returns the smallest threshold {@code t} such that the
+	 * largest component of {@code L_t} has size no greater than {@code m}.
+	 *
 	 * @param m maximum acceptable size of a cluster
 	 * @return minimum value of t so that links with in-sway at least t form a graph
 	 *         whose largest connected component is not more than m
@@ -268,7 +279,11 @@ public class LinkageGraphBuilder {
 	}
 
 	/**
-	 * Usually call {@link unionFindUpToClusterThreshold} method first.
+	 * Builds the linkage subgraph containing all links with in-sway at least
+	 * {@code inSwayLowerBound}.
+	 * <p>
+	 * Usually called after {@link #unionFindUpToClusterThreshold(int)} has been
+	 * used to choose a threshold.
 	 * 
 	 * @param inSwayLowerBound is minimum value of in-sway for links in the
 	 *                         linkageSubgraph.
@@ -285,7 +300,10 @@ public class LinkageGraphBuilder {
 	}
 
 	/**
-	 * Call {@link buildLinkageGraph} first. Restrict linkage graph to edges whose
+	 * Builds the subcritical linkage graph.
+	 * <p>
+	 * Call {@link #buildLinkageGraph()} first. This method restricts the linkage
+	 * graph to edges whose
 	 * in-sway exceeds critical value, i.e. fewer links than object.
 	 */
 	public void buildSubCriticalGraph() {
@@ -300,7 +318,9 @@ public class LinkageGraphBuilder {
 	}
 
 	/**
-	 * Call {@link buildLinkageGraph} first. Can be called more than once, for
+	 * Detects connected components of a supplied linkage subgraph.
+	 * <p>
+	 * Call {@link #buildLinkageGraph()} first. Can be called more than once, for
 	 * different subgraphs.
 	 * 
 	 * @param subGraph must have same vertex set as this.linkageGraph, and is
@@ -330,6 +350,9 @@ public class LinkageGraphBuilder {
 	}
 
 	/**
+	 * Returns the list of mutual-friend object pairs identified in the input
+	 * directed k-NN digraph.
+	 *
 	 * @return the mutual friends, i.e. mutual k-NN
 	 */
 	public List<UnorderedPair<Integer, Integer>> getMutualFriends() {
@@ -337,6 +360,9 @@ public class LinkageGraphBuilder {
 	}
 
 	/**
+	 * Returns the full in-sway weighted linkage graph built from mutual-friend
+	 * pairs.
+	 *
 	 * @return the linkage graph, whose edge weights are the in-sway between mutual
 	 *         friends
 	 */
@@ -345,27 +371,37 @@ public class LinkageGraphBuilder {
 	}
 
 	/**
-	 * @return the linkCountByInswayValue
+	 * Returns the count of links for each exact in-sway value.
+	 *
+	 * @return array where index {@code i} stores the number of links with in-sway
+	 *         exactly {@code i}
 	 */
 	public int[] getLinkCountByInswayValue() {
 		return linkCountByInswayValue;
 	}
 
 	/**
-	 * @return the linksGroupedByInsway
+	 * Returns linkage-graph edges grouped by their integer in-sway value.
+	 *
+	 * @return map from in-sway value to edge-id list in the linkage graph
 	 */
 	public Map<Integer, List<Integer>> getLinksGroupedByInsway() {
 		return linksGroupedByInsway;
 	}
 
 	/**
-	 * @return the linkCountAboveInswayValue
+	 * Returns cumulative counts of links above each in-sway level.
+	 *
+	 * @return array where index {@code i} stores the number of links with in-sway
+	 *         strictly greater than {@code i}
 	 */
 	public int[] getLinkCountAboveInswayValue() {
 		return linkCountAboveInswayValue;
 	}
 
 	/**
+	 * Returns the maximum in-sway value observed among all linkage-graph edges.
+	 *
 	 * @return the maximum value of in-sway over all links
 	 */
 	public int getMaxInsway() {
@@ -373,6 +409,9 @@ public class LinkageGraphBuilder {
 	}
 
 	/**
+	 * Returns the critical in-sway cutoff used for the subcritical-edge notion in
+	 * this class.
+	 *
 	 * @return smallest value of j such that the number of links with in-sway
 	 *         greater than j is less than the number of objects.
 	 */
@@ -381,7 +420,10 @@ public class LinkageGraphBuilder {
 	}
 
 	/**
-	 * Call {@link buildSubCriticalGraph} method first.
+	 * Returns the graph containing only links whose in-sway is above the critical
+	 * threshold.
+	 * <p>
+	 * Call {@link #buildSubCriticalGraph()} first.
 	 * 
 	 * @return the subCriticalGraph
 	 */
@@ -390,14 +432,19 @@ public class LinkageGraphBuilder {
 	}
 
 	/**
-	 * @return the Number of Objects
+	 * Returns the number of objects (vertices) in the input digraph.
+	 *
+	 * @return number of objects
 	 */
 	public int getNumberObjects() {
 		return nO;
 	}
 
 	/**
-	 * Must call {@link detectComponentsOf} method first.
+	 * Returns the component index for each vertex from the most recent component
+	 * detection.
+	 * <p>
+	 * Must call {@link #detectComponentsOf(SparseIntUndirectedWeightedGraph)} first.
 	 * 
 	 * @return which component each vertex belongs to, where minus 1 refers to
 	 *         singletons
@@ -407,7 +454,10 @@ public class LinkageGraphBuilder {
 	}
 
 	/**
-	 * Must call {@link detectComponentsOf} method first.
+	 * Returns the number of isolated vertices from the most recent component
+	 * detection.
+	 * <p>
+	 * Must call {@link #detectComponentsOf(SparseIntUndirectedWeightedGraph)} first.
 	 * 
 	 * @return count isolated objects after connected components
 	 */
@@ -416,7 +466,9 @@ public class LinkageGraphBuilder {
 	}
 
 	/**
-	 * Must call {@link detectComponentsOf} method first.
+	 * Returns a boolean mask identifying isolated objects.
+	 * <p>
+	 * Must call {@link #detectComponentsOf(SparseIntUndirectedWeightedGraph)} first.
 	 * 
 	 * @return the isIsolatedObject
 	 */
@@ -425,7 +477,10 @@ public class LinkageGraphBuilder {
 	}
 
 	/**
-	 * Call {@link buildGraphInswayNotLessThan} method first.
+	 * Returns the linkage graph containing links whose in-sway is at least a chosen
+	 * lower bound.
+	 * <p>
+	 * Call {@link #buildGraphInswayNotLessThan(int)} first.
 	 * 
 	 * @return the modest Linkage Graph, namely a linkage graph excluding links of
 	 *         in-sway less than user-specified value, as in
@@ -435,7 +490,9 @@ public class LinkageGraphBuilder {
 	}
 
 	/**
-	 * Must call {@link unionFindUpToClusterThreshold} method first.
+	 * Returns the maximum component size as a function of in-sway threshold.
+	 * <p>
+	 * Must call {@link #unionFindUpToClusterThreshold(int)} first.
 	 * 
 	 * @return map whose key is an integer value of in-sway, and whose value is the
 	 *         maximum component size in linkage graph including links of in-sway at

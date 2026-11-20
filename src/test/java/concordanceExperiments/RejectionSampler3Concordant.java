@@ -10,22 +10,34 @@ import logging.GlobalLog;
 import orientationStructures.ConcordanceExplorer;
 
 /**
- * Test rejection sampling methods of {@link ConcordanceExplorer} class. Used to
- * acquire knowledge about 3-concordant ranking systems.
- * 
- * @author <a href="https://github.com/probabilist-us">R. W. R. Darling</a>
+ * Experimental driver for rejection sampling of 3-concordant ranking systems.
+ * <p>
+ * The program repeatedly invokes
+ * {@link ConcordanceExplorer#rejectionSamplerUniform3Concordant(long)} to
+ * generate uniformly sampled 3-concordant rank tables, records waiting-time
+ * statistics, and estimates the frequency of directed 4-cycles from sampled
+ * 4-tuples.
  *
+ * @author <a href="https://github.com/probabilist-us">R. W. R. Darling</a>
  */
 public class RejectionSampler3Concordant {
 
 	ConcordanceExplorer rs;
 	Random g;
 	final int n;
+
+	/**
+	 * Lookup table for the number of 4-subsets at selected set sizes.
+	 * <p>
+	 * The value at index {@code i} is used by this experiment as the number of
+	 * sampled 4-tuples (with replacement) when {@code n = i}.
+	 */
 	static final int[] numberOfFourSubsets = new int[] { 0, 0, 0, 0, 1, 5, 15, 35, 70, 630, 6300 };
 
 	/**
-	 * 
-	 * @param num size of set of points
+	 * Creates an experiment runner for a fixed number of objects.
+	 *
+	 * @param num size of the object set used in generated ranking systems
 	 */
 	public RejectionSampler3Concordant(int num) {
 		GlobalLog.log(Level.INFO, "Instance of " + RejectionSampler3Concordant.class.getName());
@@ -35,6 +47,11 @@ public class RejectionSampler3Concordant {
 
 	}
 
+	/**
+	 * Logs the current rank table row-by-row.
+	 * <p>
+	 * Intended for diagnostics and for displaying a final generated example.
+	 */
 	void printRankTable() {
 		int[][] table = this.rs.getRankTable();
 		for (int r = 0; r < this.n; r++) {
@@ -43,9 +60,13 @@ public class RejectionSampler3Concordant {
 	}
 
 	/**
-	 * Reports result to logger
-	 * 
-	 * @param args none
+	 * Runs the rejection-sampling experiment and reports aggregate statistics.
+	 * <p>
+	 * The experiment repeatedly generates 3-concordant rank tables, tracks waiting
+	 * time to success, estimates 4-cycle frequency on sampled 4-tuples, and logs
+	 * summary means.
+	 *
+	 * @param args not used
 	 */
 	public static void main(String[] args) {
 		int num = 9;

@@ -11,15 +11,20 @@ import orientationStructures.ConcordanceExplorer;
 import readWrite.OrderedNeighborsToEdgesCSVWriter;
 
 /**
- * Test {@link ConcordanceExplorer} class. Example: for n = 1000, 249M edge
- * flips can be completed in 21 seconds. Write output to file suitable for rank
- * based linkage.
+ * Experiment driver for the 3-concordant random-walk generator in
+ * {@link ConcordanceExplorer}.
  * <p>
- * WARNING Integer overflow problems appear for n greater than 1000, in cases
- * where n cubed is involved.
- * 
- * @author <a href="https://github.com/probabilist-us">R. W. R. Darling</a>
+ * The program initializes rankings, verifies 3-concordance, runs the edge-flip
+ * process, performs consistency and cycle diagnostics, and optionally exports a
+ * k-nearest-neighbor edge list to CSV for downstream rank-based linkage.
+ * <p>
+ * Example runs indicate high throughput (for example, hundreds of millions of
+ * flips at {@code n = 1000} on suitable hardware).
+ * <p>
+ * WARNING: integer-overflow risks appear for larger {@code n} when expressions
+ * involving {@code n^3} are evaluated with {@code int} arithmetic.
  *
+ * @author <a href="https://github.com/probabilist-us">R. W. R. Darling</a>
  */
 public class Test3ConcordantRandomWalk {
 
@@ -29,8 +34,9 @@ public class Test3ConcordantRandomWalk {
 	final double num1Simplices;
 
 	/**
-	 * 
-	 * @param num size of set of points
+	 * Creates a test runner for a fixed number of objects.
+	 *
+	 * @param num size of the point/object set used in the ranking system
 	 */
 	public Test3ConcordantRandomWalk(int num) {
 		GlobalLog.log(Level.INFO, "Instance of " + Test3ConcordantRandomWalk.class.getName());
@@ -41,6 +47,9 @@ public class Test3ConcordantRandomWalk {
 		g = new Random();
 	}
 
+	/**
+	 * Logs the current rank table row-by-row.
+	 */
 	void printRankTable() {
 		int[][] table = this.r3c.getRankTable();
 		for (int r = 0; r < this.n; r++) {
@@ -48,6 +57,12 @@ public class Test3ConcordantRandomWalk {
 		}
 	}
 
+	/**
+	 * Searches for and logs one directed 3-cycle if present.
+	 * <p>
+	 * Intended as a diagnostic helper when a ranking system fails the
+	 * 3-concordance test.
+	 */
 	void report3Cycle() {
 		OptionalInt c = IntStream.range(1, n * n * n).parallel().filter(m -> r3c.voter2SimplexIsCyclic(m)).findAny();
 		if (c.isPresent()) {
@@ -62,9 +77,20 @@ public class Test3ConcordantRandomWalk {
 	}
 
 	/**
-	 * Reports result to logger
-	 * 
-	 * @param args none
+	 * Runs the end-to-end random-walk experiment and reports results to the logger.
+	 * <p>
+	 * Workflow:
+	 * <ol>
+	 * <li>Generate and optionally print random rank tables.</li>
+	 * <li>Initialize a concordant ranking and verify 3-concordance.</li>
+	 * <li>Run an edge-flip process for a random number of steps.</li>
+	 * <li>Perform consistency checks and cycle diagnostics.</li>
+	 * <li>Write the first {@code k} ordered neighbors per vertex to a CSV edge
+	 * file.</li>
+	 * <li>Estimate 4-cycle frequency from random 4-vertex samples.</li>
+	 * </ol>
+	 *
+	 * @param args not used
 	 */
 	public static void main(String[] args) {
 		int num = 1000;

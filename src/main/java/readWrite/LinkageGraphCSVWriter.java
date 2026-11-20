@@ -38,6 +38,8 @@ public class LinkageGraphCSVWriter {
 	}
 
 	/**
+	 * Writes linkage-graph edges to CSV with component labels and rounded weights.
+	 *
 	 * 
 	 * @param directory      where file is to be placed
 	 * @param edgeFileName   name of edge file
@@ -75,6 +77,8 @@ public class LinkageGraphCSVWriter {
 	}
 
 	/**
+	 * Writes isolated vertices (singletons) to a one-column CSV file.
+	 *
 	 * 
 	 * @param directory            to write file
 	 * @param singleVertexFileName name for file of isolated vertices
@@ -119,6 +123,8 @@ public class LinkageGraphCSVWriter {
 	}
 
 	/**
+	 * Sets the lookup list that maps integer vertex IDs to original object labels.
+	 *
 	 * @param objectStringLookup the objectStringLookup to set
 	 */
 	public void setObjectStringLookup(List<String> objectStringLookup) {

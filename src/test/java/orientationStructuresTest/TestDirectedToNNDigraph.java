@@ -14,16 +14,25 @@ import orientationStructures.DirectedToNNDigraph;
 import readWrite.StringPairCSVReader;
 
 /**
- * Tests the {@link orientationStructures.DirectedToNNDigraph} class.
- * @author <a href="https://github.com/probabilist-us">R. W. R. Darling</a>
+ * Integration-style test driver for {@link DirectedToNNDigraph}.
+ * <p>
+ * The program reads weighted directed edges from CSV, builds the raw sparse
+ * graph, computes its 2-core, inspects nearest-neighbor extraction for a sample
+ * vertex, and finally constructs the directed k-nearest-neighbor digraph.
  *
+ * @author <a href="https://github.com/probabilist-us">R. W. R. Darling</a>
  */
 public class TestDirectedToNNDigraph {
 	DirectedToNNDigraph d2nndg;
 	StringPairCSVReader reader;
 
 	/**
-	 * 
+	 * Creates a test instance with:
+	 * <ul>
+	 * <li>a CSV reader for weighted edge records, and</li>
+	 * <li>a {@link DirectedToNNDigraph} configured so larger weights indicate
+	 * greater similarity.</li>
+	 * </ul>
 	 */
 	public TestDirectedToNNDigraph() {
 		GlobalLog.log(Level.INFO, "Instance of " + TestDirectedToNNDigraph.class.getName());
@@ -32,12 +41,21 @@ public class TestDirectedToNNDigraph {
 	}
 
 	/**
-	 * @param args fileName, # neighbors
+	 * Runs the directed-to-kNN pipeline and logs timing/diagnostic information.
+	 * <p>
+	 * Expected arguments:
+	 * <ol>
+	 * <li>path to CSV file of {@code source,target,weight} rows</li>
+	 * <li>{@code k}, the number of nearest outgoing neighbors to retain</li>
+	 * </ol>
+	 *
+	 * @param args command-line arguments: {@code args[0] = fileName},
+	 *             {@code args[1] = k}
 	 */
 	public static void main(String[] args) {
 		String fileName = args[0];
 		int k = Integer.parseInt(args[1]); // # neighbors
-		GlobalLog.log(Level.INFO,"Input file: " + fileName);
+		GlobalLog.log(Level.INFO, "Input file: " + fileName);
 		TestDirectedToNNDigraph test = new TestDirectedToNNDigraph();
 		test.reader.readStringPairsWithWeights(fileName);
 		int nEdges = test.reader.getWeightedEdges().size();

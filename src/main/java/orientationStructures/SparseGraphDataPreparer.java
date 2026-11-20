@@ -19,10 +19,15 @@ import logging.GlobalLog;
 import readWrite.StringPairWithWeight;
 
 /**
- * Contains common methods of the classes {@link DirectedToNNDigraph} and
- * {@link UndirectedToNNDigraph}, such as building a vertex index, but no graphs
- * are built yet. The two core construction occurs with a generic AbstractGraph
- * as parameter.
+ * Base helper for preparing sparse-graph data used by
+ * {@link DirectedToNNDigraph} and {@link UndirectedToNNDigraph}.
+ * <p>
+ * This class stores the input edge records, builds object-to-index lookup
+ * structures, converts string-labeled edges to integer-labeled triples, and
+ * computes membership in the 2-core on a supplied graph instance.
+ * <p>
+ * Concrete subclasses are responsible for constructing the final directed or
+ * undirected graph objects.
  * 
  * @author <a href="https://github.com/probabilist-us">R. W. R. Darling</a>
  *
@@ -35,14 +40,17 @@ public abstract class SparseGraphDataPreparer {
 	boolean[] vertexIsInTwoCore, edgeIsInTwoCore;
 
 	/**
-	 * 
+	 * Creates a new preparer instance.
 	 */
 	public SparseGraphDataPreparer() {
 		GlobalLog.log(Level.INFO, "Instance of " + SparseGraphDataPreparer.class.getName());
 	}
 
 	/**
-	 * First method to invoke.
+	 * Sets the source-target-weight records used by subsequent preparation steps.
+	 * <p>
+	 * This is typically the first method to invoke before
+	 * {@link #buildObjectIndex()} and {@link #buildEdgeList()}.
 	 * 
 	 * @param edgeRecords list of "source, target, weight" triples. In extensions of
 	 *                    this abstract class, edges will be declared as directed or
@@ -54,14 +62,18 @@ public abstract class SparseGraphDataPreparer {
 	}
 
 	/**
-	 * Build an index for all the source and target strings, which refer to
-	 * vertices.
+	 * Builds an index over all source and target labels that appear in the stored
+	 * edge records.
 	 * <p>
-	 * WARNING: Not enough to include sources only. Possibly some vertex has
-	 * out-degree zero, but positive in-degree.
+	 * Both source and target columns are used because a vertex may have out-degree
+	 * zero while still having positive in-degree.
 	 * <p>
-	 * Preparation for making a linkageGraph with vertices indexed by integers 0 to
-	 * n &minus; 1
+	 * The method populates:
+	 * <ul>
+	 * <li>{@code objectStringLookup}: index-to-label map via list position</li>
+	 * <li>{@code vertexIndex}: label-to-index map</li>
+	 * <li>{@code nV}: number of distinct vertices</li>
+	 * </ul>
 	 */
 	public void buildObjectIndex() {
 		this.objectStringLookup = this.stwList.stream().flatMap(r -> r.getSourceAndTarget().stream()).distinct()
@@ -73,8 +85,13 @@ public abstract class SparseGraphDataPreparer {
 	}
 
 	/**
-	 * 
-	 * 
+	 * Converts the stored string-labeled edge list into integer-indexed weighted
+	 * triples.
+	 * <p>
+	 * Each output triple has the form
+	 * {@code (sourceIndex, targetIndex, weight)} and is suitable for sparse-graph
+	 * constructors that accept primitive integer vertex identifiers.
+	 *
 	 * @return list of triples suitable for input file for the
 	 *         {@link org.jgrapht.opt.graph.sparse.SparseIntDirectedWeightedGraph}
 	 *         constructor.
@@ -92,9 +109,13 @@ public abstract class SparseGraphDataPreparer {
 	/**
 	 * Construct lists of edges and vertices outside the two core, without regards
 	 * to whether edges are directed or not.
+	 * <p>
+	 * Results are stored in {@code vertexIsInTwoCore} and
+	 * {@code edgeIsInTwoCore} for later filtering by subclasses.
 	 *
-	 * @param abstractGraph will be a SparseIntDirectedWeightedGraph or
-	 *                      SparseIntUndirectedWeightedGraph in an extending class.
+	 * @param abstractGraph graph on integer vertex and edge identifiers; typically a
+	 *                      sparse directed or sparse undirected weighted graph in an
+	 *                      extending class
 	 */
 	public void determineTwoCore(AbstractGraph<Integer, Integer> abstractGraph) {
 		TwoCoreIntBased twoCore = new TwoCoreIntBased(abstractGraph);
@@ -111,28 +132,36 @@ public abstract class SparseGraphDataPreparer {
 	}
 
 	/**
-	 * @return the objectStringLookup as list of distinct objects
+	 * Returns the distinct object labels seen in source/target positions.
+	 *
+	 * @return immutable list mapping internal vertex indices to original labels
 	 */
 	public List<String> getObjectStringLookup() {
 		return objectStringLookup;
 	}
 
 	/**
-	 * @return the vertexIndex lookup map
+	 * Returns the object-label to vertex-index lookup map.
+	 *
+	 * @return map from original object label to internal integer vertex index
 	 */
 	public Map<String, Integer> getVertexIndex() {
 		return vertexIndex;
 	}
 
 	/**
-	 * @return the number of source and target vertices
+	 * Returns the number of distinct vertices observed in the input records.
+	 *
+	 * @return number of vertices
 	 */
 	public int getnV() {
 		return nV;
 	}
 
 	/**
-	 * @return the number of edges
+	 * Returns the number of input edge records.
+	 *
+	 * @return number of edges
 	 */
 	public int getnE() {
 		return nE;

@@ -18,10 +18,15 @@ import logging.GlobalLog;
 import readWrite.StringPairWithWeight;
 
 /**
- * Takes a List of {@link readWrite.StringPairWithWeight} records, indexes the
- * source and target objects by integers 0 to n &minus; 1, and builds a
- * {@link org.jgrapht.opt.graph.sparse.SparseIntDirectedWeightedGraph} object.
- * After extracting the two core, build K-NN digraph.
+ * Builds a directed weighted k-nearest-neighbor (k-NN) digraph from directed
+ * weighted edge records.
+ * <p>
+ * The class indexes string-labeled objects to integer vertex IDs, builds a raw
+ * sparse directed weighted graph, computes 2-core membership, and then keeps
+ * only top-{@code k} outgoing neighbors per eligible source vertex.
+ * <p>
+ * Weight ordering is controlled by the constructor flag
+ * {@code higherWeightIsBetter}.
  * 
  * @author <a href="https://github.com/probabilist-us">R. W. R. Darling</a>
  *
@@ -35,17 +40,26 @@ public class DirectedToNNDigraph extends SparseGraphDataPreparer implements Near
 	 * higherWeightIsBetter is true, and vice versa.
 	 */
 	public Comparator<Integer> edgeMoreSimilarThan;
-/**
- * 
- * @param higherBetter true if higher edge weight means more similar
- */
+	/**
+	 * Creates a converter from directed weighted edge data to a directed k-NN
+	 * digraph.
+	 *
+	 * @param higherBetter true if larger edge weight means greater similarity;
+	 *                     false if smaller weight means greater similarity
+	 */
 	public DirectedToNNDigraph(boolean higherBetter) {
 		GlobalLog.log(Level.INFO, "Instance of " + DirectedToNNDigraph.class.getName());
 		this.higherWeightIsBetter = higherBetter;
 	}
 
 	/**
-	 * Creates a sparse directed linkageGraph.
+	 * Builds the raw sparse directed weighted graph from edge records and prepares
+	 * the similarity comparator.
+	 * <p>
+	 * This method initializes inherited source/target indexing and constructs the
+	 * graph used by subsequent 2-core and k-NN stages.
+	 *
+	 * @param edgeRecords input weighted directed edge records
 	 */
 	@Override
 	public void buildRawSparseGraph(List<StringPairWithWeight> edgeRecords) {
@@ -68,8 +82,9 @@ public class DirectedToNNDigraph extends SparseGraphDataPreparer implements Near
 		}
 	}
 
-	
-
+					/**
+					 * Computes 2-core membership on the current raw directed graph.
+					 */
 	@Override
 	public void determineTwoCore() {
 		super.determineTwoCore(this.digraph);
@@ -85,7 +100,7 @@ public class DirectedToNNDigraph extends SparseGraphDataPreparer implements Near
 	 * Excludes non-two core edges.
 	 * 
 	 * @param v source vertex
-	 * @param k number to be returned
+	 * @param k maximum number of neighbors to return
 	 * @return k outgoing two core edges from source v with largest weight., or
 	 *         empty stream if v is not in the two core.
 	 */
@@ -134,6 +149,8 @@ public class DirectedToNNDigraph extends SparseGraphDataPreparer implements Near
 	 * weight will be placed in a list, from which a new sparse directed
 	 * linkageGraph, this.knnDigraph, is built. We cannot delete some edges from
 	 * this.digraph, which is immutable.
+	 *
+	 * @param k number of outgoing nearest neighbors retained per vertex
 	 */
 	@Override
 	public void buildKNearNbrDigraph(int k) {
@@ -143,14 +160,18 @@ public class DirectedToNNDigraph extends SparseGraphDataPreparer implements Near
 	}
 
 	/**
-	 * @return the N-NN digraph
+	 * Returns the constructed directed weighted k-nearest-neighbor digraph.
+	 *
+	 * @return k-NN digraph
 	 */
 	public SparseIntDirectedWeightedGraph getKNNDigraph() {
 		return this.knnDigraph;
 	}
 
 	/**
-	 * @return the raw input digraph
+	 * Returns the raw sparse directed weighted graph built from input records.
+	 *
+	 * @return raw directed graph used as k-NN source
 	 */
 	public SparseIntDirectedWeightedGraph getDigraph() {
 		return digraph;

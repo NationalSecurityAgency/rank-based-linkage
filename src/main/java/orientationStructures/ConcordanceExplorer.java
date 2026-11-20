@@ -19,18 +19,18 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 import logging.GlobalLog;
-import main.ClusteringByInsway;
 
 /**
- * Research tool with test classes for generating 3-concordant ranking systems.
- * Provides array-based data structures {@link getRankTable} and
- * {@link getOrderedNeighbors}, utility methods for ranking systems, and methods
- * for testing for 3-concordance.
+ * Research utility for generating and exploring 3-concordant ranking systems.
+ * <p>
+ * The class exposes array-based representations of rankings via
+ * {@link #getRankTable()} and {@link #getOrderedNeighbors()}, plus methods for
+ * random generation, cycle diagnostics, and concordance testing.
  * <p>
  * Used to generate examples for rank-based linkage.
  * <p>
- * Includes {@link rejectionSamplerUniform3Concordant} (for up to ten objects),
- * and {@link edgeFlipProcess} (for thousands of objects).
+ * Includes {@link #rejectionSamplerUniform3Concordant(long)} (for small systems)
+ * and {@link #edgeFlipProcess(int)} (for larger systems).
  * 
  * @author <a href="https://github.com/probabilist-us">R. W. R. Darling</a>
  *
@@ -48,8 +48,11 @@ public class ConcordanceExplorer {
 	SplittableRandom g;
 
 	/**
-	 * 
-	 * @param numPoints number of objects in ranking system
+	 * Creates an explorer on {@code numPoints} objects.
+	 * <p>
+	 * Objects are identified by integers {@code 0,1,...,numPoints-1}.
+	 *
+	 * @param numPoints number of objects in the ranking system
 	 */
 	public ConcordanceExplorer(int numPoints) {
 		GlobalLog.log(Level.INFO, "Instance of " + ConcordanceExplorer.class.getName());
@@ -87,10 +90,13 @@ public class ConcordanceExplorer {
 	}
 
 	/**
-	 * 
-	 * @param maxTrials limit of number iterations
+	 * Runs rejection sampling from independently generated uniform random ranking
+	 * tables until a 3-concordant table is found or a trial cap is reached.
+	 *
+	 * @param maxTrials maximum number of random tables to test
 	 * @return OptionalLong containing number of iterations to success if a
-	 *         3-concordant ranking table is found, or empty if not.
+	 *         3-concordant ranking table is found, or empty if not found within
+	 *         {@code maxTrials}
 	 */
 	public OptionalLong rejectionSamplerUniform3Concordant(long maxTrials) {
 		long nTrials = 0L;
@@ -108,8 +114,11 @@ public class ConcordanceExplorer {
 	}
 
 	/**
-	 * Initializes orderedNeighbors and orderedNeighbors using a random acyclic
-	 * orientation.
+	 * Initializes {@code rankTable} and {@code orderedNeighbors} from a random
+	 * acyclic orientation.
+	 * <p>
+	 * The method draws a symmetric random matrix and uses each row ordering to
+	 * induce a ranking of neighbors.
 	 */
 	public void generateConcordant() {
 		/*
@@ -155,7 +164,7 @@ public class ConcordanceExplorer {
 
 	}
 
-	/*
+	/**
 	 * Select point x uniformly at random. Then select rank k uniformly from {1, 2,
 	 * ..., n-2}. Take y at rank k, and z at rank k+1, according to x. Switch their
 	 * ranks, if no directed 3-cycle results.
@@ -404,27 +413,37 @@ public class ConcordanceExplorer {
 	}
 
 	/**
-	 * @return the rank Table
-	 *         <p>
-	 *         orderedNeighbors[x][y] = k means y is the k-th nearest neighbor of x,
-	 *         according to x's ranking. The same relationship is expressed by
-	 *         orderedNeighbors[x][k] = y, where the objects are treated as the set
-	 *         S:={0, 1, 2, ..., n-1}, and ranks k are elements of {1, 2, ...,n-1}.
-	 *         By convention orderedNeighbors[x][x] = 0.
+	 * Returns the rank table representation.
+	 * <p>
+	 * Entry {@code rankTable[x][y] = k} means object {@code y} is at rank
+	 * {@code k} in object {@code x}'s ranking. By convention
+	 * {@code rankTable[x][x] = 0}.
+	 *
+	 * @return rank table indexed by source object then neighbor object
 	 */
 	public int[][] getRankTable() {
 		return rankTable;
 	}
 
 	/**
-	 * @return the ordered Neighbors. Explained under {@link getRankTable}
+	 * Returns the ordered-neighbor representation of rankings.
+	 * <p>
+	 * Entry {@code orderedNeighbors[x][k] = y} means object {@code y} is the
+	 * {@code k}-th nearest neighbor of object {@code x} according to {@code x}'s
+	 * ranking. See also {@link #getRankTable()} for the inverse lookup form.
+	 *
+	 * @return neighbor-order table indexed by source object then rank
 	 */
 	public int[][] getOrderedNeighbors() {
 		return orderedNeighbors;
 	}
-/**
- * Logging of whether ranks and neighbor orders are consistent
- */
+
+	/**
+	 * Logs a random consistency check between {@code orderedNeighbors} and
+	 * {@code rankTable}.
+	 * <p>
+	 * Intended for diagnostics while developing or validating ranking-table updates.
+	 */
 	public void checkConsistencyOfRanksWithNbrs() {
 		int index = this.g.nextInt(this.n);
 		int rank = this.g.nextInt(this.n - 1);
@@ -437,15 +456,22 @@ public class ConcordanceExplorer {
 	}
 
 	/**
-	 * @return the number of Flips
+	 * Returns the number of accepted flips performed by
+	 * {@link #edgeFlipProcess(int)} since its most recent initialization.
+	 *
+	 * @return number of accepted edge-flip updates
 	 */
 	public int getNumFlips() {
 		return numFlips;
 	}
 
 	/**
-	 * 
-	 * @param rankTable rank Table to be set
+	 * Replaces the current rank table reference.
+	 * <p>
+	 * Caller is responsible for supplying a table consistent with this instance's
+	 * object count and, if needed, with {@code orderedNeighbors}.
+	 *
+	 * @param rankTable rank table to assign
 	 */
 	public void setRankTable(int[][] rankTable) {
 		this.rankTable = rankTable;

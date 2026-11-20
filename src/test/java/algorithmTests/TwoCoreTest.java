@@ -14,11 +14,13 @@ import org.jgrapht.opt.graph.sparse.SparseIntUndirectedGraph;
 import algorithms.TwoCoreIntBased;
 
 /**
- * Test the {@link algorithms.TwoCoreIntBased} class on a
- * SparseIntUndirectedGraph. 
- * 
- * @author <a href="https://github.com/probabilist-us">R. W. R. Darling</a>
+ * Console-based test driver for {@link TwoCoreIntBased} on a random
+ * {@link SparseIntUndirectedGraph}.
+ * <p>
+ * The test builds a random graph, computes its 2-core, and prints graph
+ * neighborhoods plus 2-core vertices/edges and per-round edge-removal counts.
  *
+ * @author <a href="https://github.com/probabilist-us">R. W. R. Darling</a>
  */
 public class TwoCoreTest {
 
@@ -27,9 +29,10 @@ public class TwoCoreTest {
 	Random g;
 
 	/**
-	 * 
-	 * @param n # vertices
-	 * @param m # edges
+	 * Creates a random graph test instance and immediately computes its 2-core.
+	 *
+	 * @param n number of vertices in the random undirected graph
+	 * @param m number of random edges generated
 	 */
 	public TwoCoreTest(int n, int m) {
 		g = new Random();
@@ -39,6 +42,16 @@ public class TwoCoreTest {
 
 	}
 
+	/**
+	 * Generates {@code m} random unordered vertex pairs for an undirected graph on
+	 * {@code n} vertices.
+	 * <p>
+	 * Self-loops are avoided; duplicate pairs may occur.
+	 *
+	 * @param n number of vertices
+	 * @param m number of edge pairs to generate
+	 * @return list of random endpoint pairs
+	 */
 	List<Pair<Integer, Integer>> edgeList(int n, int m) {
 		List<Pair<Integer, Integer>> randomPairs = new ArrayList<>();
 		int s, t;
@@ -54,11 +67,9 @@ public class TwoCoreTest {
 	}
 
 	/**
-	 * A random graph on eleven vertices is created. Edge list is inspected.
-	 * Check whether two core is computed correctly by
-	 * {@link algorithms.TwoCoreIntBased} class.
-	 * 
-	 * @param args none
+	 * Runs one random-graph experiment and prints graph and 2-core diagnostics.
+	 *
+	 * @param args not used
 	 */
 	public static void main(String[] args) {
 		int n = 200;
@@ -68,9 +79,10 @@ public class TwoCoreTest {
 		test.reportGraph();
 		test.reportCore();
 	}
-/**
- * Report graph neighbor test to console.
- */
+
+	/**
+	 * Prints each vertex and its neighbor list to standard output.
+	 */
 	public void reportGraph() {
 		for (Integer v : this.graph.vertexSet()) {
 			System.out.print("Neighbors of vertex " + v + ": ");
@@ -83,7 +95,7 @@ public class TwoCoreTest {
 	}
 
 	/**
-	 * Report results of experiment to console.
+	 * Prints computed 2-core vertices/edges and edge-removal counts by round.
 	 */
 	public void reportCore() {
 		System.out.println("Two-core vertices:");

@@ -1,4 +1,3 @@
-
 /* THIS PUBLIC DOMAIN SOFTWARE WAS PRODUCED BY AN EMPLOYEE OF U.S. GOVERNMENT 
  * AS PART OF THEIR OFFICIAL DUTIES.
  */
@@ -16,30 +15,37 @@ import org.apache.commons.csv.CSVRecord;
 import logging.GlobalLog;
 
 /**
- * Reads triples of form (String, String, double), and places them in a list of
- * records of type {@link StringPairWithWeight}.
+ * Reads weighted edge records from CSV into {@link StringPairWithWeight}
+ * objects.
  * <p>
- * The triples can represent either a directed or undirected weighted linkageGraph.
- * There is no restriction of the number of targets associated with each source.
- * The K-NN extraction occurs later. 
- * 
- * @author <a href="https://github.com/probabilist-us">R. W. R. Darling</a>
+ * Expected CSV row format is:
+ * {@code sourceLabel,targetLabel,weight}, where the third field is parsed as a
+ * {@code double}.
+ * <p>
+ * The data may represent directed or undirected weighted graphs. No per-source
+ * degree restriction is imposed at read time; nearest-neighbor extraction occurs
+ * in later processing stages.
  *
+ * @author <a href="https://github.com/probabilist-us">R. W. R. Darling</a>
  */
 public class StringPairCSVReader {
 	private List<StringPairWithWeight> weightedEdges;
-/**
- * Minimal constructor
- */
+
+	/**
+	 * Creates a reader instance with an initially empty edge list.
+	 */
 	public StringPairCSVReader() {
 		GlobalLog.log(Level.INFO, "Instance of " + StringPairCSVReader.class.getName());
 		this.weightedEdges = new ArrayList<>();
 	}
 
 	/**
-	 * Read triples from CSV file
-	 * 
-	 * @param csvFileName name of CSV file
+	 * Reads edge triples from a CSV file and appends them to the internal list.
+	 * <p>
+	 * Each parsed row contributes one {@link StringPairWithWeight} record. If this
+	 * method is called multiple times, previously read edges are retained.
+	 *
+	 * @param csvFileName path to the CSV input file
 	 */
 	public void readStringPairsWithWeights(String csvFileName) {
 		try {
@@ -61,7 +67,9 @@ public class StringPairCSVReader {
 	}
 
 	/**
-	 * @return the weightedEdges
+	 * Returns the accumulated list of weighted edges read so far.
+	 *
+	 * @return mutable list of {@link StringPairWithWeight} records
 	 */
 	public List<StringPairWithWeight> getWeightedEdges() {
 		return weightedEdges;

@@ -4,16 +4,27 @@
 package orientationStructures;
 
 /**
- * When x is source, y is target, the record indicates that y is the k-th
- * nearest neighbor of x, according to x's ranking. Such records are used in
- * {@link algorithms.LinkageGraphBuilder}
- * 
- * @author <a href="https://github.com/probabilist-us">R. W. R. Darling</a>
+ * Immutable record describing a directed nearest-neighbor relation.
+ * <p>
+ * When {@code source = x} and {@code target = y}, this record states that
+ * {@code y} is the {@code rank}-th nearest neighbor of {@code x} according to
+ * {@code x}'s ranking.
+ * <p>
+ * Such records are used by {@link algorithms.LinkageGraphBuilder} to build
+ * orientation/linkage structures from ranked neighbor data.
  *
+ * @param source the vertex whose neighborhood ranking is being referenced
+ * @param target the ranked neighbor vertex
+ * @param rank the 1-based position of {@code target} in {@code source}'s
+ *             nearest-neighbor order
+ * @author <a href="https://github.com/probabilist-us">R. W. R. Darling</a>
  */
 public record NeighborRecord(String source, String target, int rank) {
 	/**
-	 * Concatenate three string fields, with blank space separators.
+	 * Returns a compact space-delimited representation:
+	 * {@code "source target rank"}.
+	 *
+	 * @return string form of this record suitable for plain-text export
 	 */
 	@Override
 	public String toString() {
