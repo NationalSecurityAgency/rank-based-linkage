@@ -37,6 +37,24 @@ Darling, Grilliette and Logan, https://arxiv.org/abs/2302.02200
 <p>"java -jar rbl.jar lineGraph.csv Ul 8"
 <p> The test resources folder contains syntheticTraffic.csv: four relay sessions among disjoint groups of four hosts (record IDs a.., b.., c.., d..) plus ten random cross-group records (x..). With maximum time difference 60 the line graph has 211 edges, and every link in the linkage subgraph from "Ul 8" joins two records of the same session. The class preprocessingTests.TestTrafficLineGraphBuilder checks the line graph of six records by hand.
 
+## Sample output
+<p> The image above comes from the migrant flow data. The commands below run the whole traffic pipeline on src/test/resources/syntheticTraffic.csv (100 records, four sessions a.., b.., c.., d.. plus cross-group noise x..) and draw the result:
+<p>"java -cp rbl.jar preprocessing.TrafficLineGraphBuilder syntheticTraffic.csv lineGraph.csv 60"
+<p>"java -jar rbl.jar lineGraph.csv Ul 8"
+<p>"python tools/visualize/rbl_visualize.py RBL-100-objects-component-size-bound-19-71-links-8-NN-(timestamp) -o traffic-Ul-8.png"
+<p> The line graph has 211 edges. The linkage subgraph has 100 objects, 71 links, 17 components (largest 19) and 17 isolated objects, with in-sway from 5 to 11. The first lines of the 71-modest-edges.csv file written by rbl.jar (component, source, target, in-sway):
+<pre>
+component,source-vertex,target-vertex,weight
+0,a02,a03,5
+2,a05,a09,5
+3,a14,a15,5
+4,a17,a18,5
+5,a21,a22,5
+</pre>
+<p> Each coloured component lies within one session (here the c.. and b.. sessions come out as the two large components at the top); isolated objects are the grey dots at the bottom.
+
+![Linkage graph of the synthetic traffic data, Ul 8](tools/visualize/traffic-Ul-8.png)
+
 ## Future plans
 <p> Create a Java preprocessor for bipartite transactional data where each record includes a consumer ID, a product ID, and a numerical quantity. Suppose the goal is unsupervised learning for products. Construct the transition matrix for the Markov chain whose state space is product IDs, and whose transition rate p(x, y) from product x to product y is computed as follows. Sample at random a consumer who bought product x, weighted by quantity. Then sample at random a product purchased by this consumer, again weighted by quantity, and denote this random product ID by Z. Take p(x,y) to be the probability P[Z=y]. The preprocessor exports a CSV file whose lines are of the form: x (product ID), y (product ID), p(x,y). This file becomes an input for rbl.jar with Dh as input parameter.
 
